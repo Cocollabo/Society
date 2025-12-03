@@ -1,0 +1,2251 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Society</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'],
+                    },
+                }
+            }
+        }
+    </script>
+    <style>
+        /* Importation de la police Inter (style Apple) */
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@100..900&display=swap');
+
+        body {
+            /* Fond : Bleu-Violet doux */
+            background: linear-gradient(135deg, #e0f7fa, #c5cae9, #ffecb3);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            /* Espace réduit pour le header fixe */
+            padding-top: 4.5rem; 
+            font-family: 'Inter', sans-serif;
+        }
+
+        /* Styles de base pour l'effet Liquid Glass */
+        .liquid-glass {
+            background: rgba(255, 255, 255, 0.2);
+            backdrop-filter: blur(40px) saturate(200%);
+            -webkit-backdrop-filter: blur(40px) saturate(200%);
+            border: 1px solid rgba(255, 255, 255, 0.6);
+            box-shadow: 0 15px 30px rgba(0, 0, 0, 0.1), 0 0 0 1px rgba(255, 255, 255, 0.4);
+        }
+
+        /* Styles pour les champs de saisie (inputs/select) */
+        .glass-input {
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            background: linear-gradient(180deg, rgba(255, 255, 255, 0.6), rgba(255, 255, 255, 0.4));
+            border: 1px solid rgba(255, 255, 255, 0.6);
+            box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.05);
+            color: #1f2937;
+        }
+
+        .glass-input:focus {
+            border-color: rgba(59, 130, 246, 0.8);
+            box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.2);
+        }
+
+        /* Styles pour le bouton d'envoi */
+        .apple-button {
+            background: linear-gradient(145deg, #106fcc, #3b82f6); 
+            border: 1px solid rgba(255, 255, 255, 0.7);
+            transition: all 0.3s cubic-bezier(0.2, 0.8, 0.2, 1);
+        }
+
+        .apple-button:hover {
+            box-shadow: 0 15px 30px rgba(30, 64, 175, 0.4), 0 0 0 1px rgba(255, 255, 255, 1);
+            transform: translateY(-2px) scale(1.02);
+        }
+
+        .apple-button:active {
+            transform: scale(0.96);
+            opacity: 0.95;
+            box-shadow: 0 5px 15px rgba(30, 64, 175, 0.3);
+        }
+        
+        /* Conteneur pour simuler le hover Framer Motion sur les champs */
+        .input-wrapper {
+            transition: all 0.3s cubic-bezier(0.2, 0.8, 0.2, 1);
+        }
+
+        /* S'assurer que le contenu principal est centré verticalement sur la page de formulaire */
+        .form-view-container {
+             /* Min-height ajustée pour le formulaire sans défilement sur desktop/tablette */
+            min-height: calc(100vh - 6.5rem); 
+        }
+
+        /* NOUVEAU: Styles pour le Ticker/Slideshow */
+        .ticker-container {
+            height: 55px; /* Hauteur fixe pour éviter le décalage de mise en page */
+            overflow: hidden;
+            position: relative;
+        }
+        .ticker-item {
+            position: absolute;
+            width: 100%;
+            top: 0;
+            opacity: 0;
+            transition: opacity 0.8s ease-in-out, transform 0.8s ease-in-out;
+            transform: translateY(100%);
+            display: none; /* Masquer initialement */
+        }
+        .ticker-item.active {
+            opacity: 1;
+            transform: translateY(0);
+            display: block; /* Afficher l'élément actif */
+            z-index: 10;
+        }
+
+    </style>
+</head>
+<body>
+    
+    <nav class="liquid-glass fixed top-0 left-0 right-0 z-50 px-4 sm:px-8 py-3 flex justify-between items-center shadow-lg">
+        <div onclick="setView('community')" class="flex items-center space-x-2 cursor-pointer transition-colors hover:text-blue-600">
+            <svg class="w-6 h-6 text-gray-800" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.75 17L9.25 21H14.75L14.25 17M12 4V17M12 4a3 3 0 013 3v10a3 3 0 01-3 3M12 4a3 3 0 00-3 3v10a3 3 0 003 3"></path></svg>
+            <span class="text-xl font-bold text-gray-900 drop-shadow-sm">Society</span>
+        </div>
+
+        <div class="flex items-center space-x-4">
+            <button onclick="setView('form')" id="nav-form" class="px-3 py-2 rounded-full font-medium text-sm transition-colors hover:bg-white/40 active:scale-95">
+                Nouveau Projet
+            </button>
+            <button onclick="setView('projects')" id="nav-projects" class="px-3 py-2 rounded-full font-medium text-sm transition-colors hover:bg-white/40 active:scale-95 flex items-center gap-1">
+                Mes Projets <span id="project-count" class="text-xs font-bold text-blue-600 bg-white/50 px-2 rounded-full">0</span>
+            </button>
+            <button onclick="setView('community')" id="nav-community" class="px-3 py-2 rounded-full font-medium text-sm transition-colors hover:bg-white/40 active:scale-95">
+                Ma commune
+            </button>
+            <button onclick="setView('admin')" id="nav-admin" class="px-3 py-2 rounded-full font-medium text-sm transition-colors hover:bg-white/40 active:scale-95 hidden">
+                Admin
+            </button>
+        </div>
+        
+        <button onclick="window.toggleAuthModal()" id="nav-user-status" class="px-3 py-2 rounded-full font-medium text-sm transition-colors hover:bg-white/40 active:scale-95 text-gray-700">
+            Se connecter
+        </button>
+    </nav>
+
+    <main id="main-content" class="w-full max-w-7xl px-4 items-start flex-grow">
+        </main>
+        
+        <div id="auth-modal" class="fixed inset-0 z-[99] bg-black/30 backdrop-blur-sm items-center justify-center transition-opacity duration-300" style="display: none;">
+            <div id="auth-form-container" class="liquid-glass p-8 rounded-3xl w-full max-w-sm m-4 transform transition-transform duration-300 scale-95 opacity-0">
+                </div>
+        </div>
+
+        <div id="edit-modal" class="fixed inset-0 z-[100] bg-black/30 backdrop-blur-sm items-center justify-center transition-opacity duration-300" style="display: none;">
+            <div id="edit-form-container" class="liquid-glass p-8 rounded-3xl w-full max-w-xl m-4 transform transition-transform duration-300 scale-95 opacity-0">
+                <button type="button" onclick="window.toggleEditModal(false)" class="absolute top-3 right-3 text-gray-600 hover:text-gray-900 p-2 rounded-full bg-white/50 transition-colors">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+                </button>
+            </div>
+        </div>
+
+        <div id="pro-detail-modal" class="hidden fixed inset-0 z-50 bg-black bg-opacity-10 flex justify-center items-center">
+            <div id="pro-detail-content" class="p-6 md:p-10 rounded-xl shadow-2xl max-w-xl w-full max-h-[90vh] overflow-y-auto relative 
+            liquid-glass bg-white/50 border border-white/30">
+            <button onclick="window.closeDetailModal()" class="absolute top-3 right-3 text-gray-400 hover:text-gray-600 text-3xl leading-none z-[1000] p-1 bg-transparent">
+                &times;
+            </button>
+
+            <div id="pro-detail-body">
+                </div>
+
+            </div>
+        </div>  
+          
+    <script type="module">
+        // --- IMPORTS FIREBASE ---
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+        // Doit inclure getAuth, signInWithEmailAndPassword, etc.
+        import { getAuth, signInWithEmailAndPassword, createUserWithEmailAndPassword, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+        import { getFirestore, doc, setDoc, onSnapshot, collection, query, serverTimestamp, deleteDoc, addDoc, where, getDocs, orderBy, updateDoc, getDoc } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+
+        // --- 0. CONFIGURATION GLOBALE ---
+        // Utilisation de projectId comme ID d'application pour les références Firestore
+        const appId = 'society-aed33'; 
+        // Votre configuration Firebase réelle
+        const firebaseConfig = {
+            apiKey: "AIzaSyBI-TW6ueN7NaQMosXHEiTpPle5b4PrJcc",
+            authDomain: "society-aed33.firebaseapp.com",
+            projectId: "society-aed33",
+            storageBucket: "society-aed33.firebasestorage.app",
+            messagingSenderId: "701322622191",
+            appId: "1:701322622191:web:5a38793eaecfb509a0171a",
+            measurementId: "G-7FGECHDBEM"
+        };
+        const WEBHOOK_URL = "#"; // Ceci sera modifié plus tard pour Make.com
+
+        // --- 1. ÉTATS GLOBAUX ---
+        let db;
+        let auth; // NOUVEAU : Référence à l'objet Auth
+        let userId = null; // L'ID sera null tant que l'utilisateur n'est pas connecté
+        let userEmail = null; // NOUVEAU : Email de l'utilisateur
+        let userRole = 'standard'; // 🎯 NOUVEAU : Rôle de l'utilisateur (standard par défaut)
+        let isAuthReady = false; // Faux tant que l'état d'auth n'est pas vérifié
+        let showAuthModal = false; // NOUVEAU : État pour afficher/masquer la modale
+        let showEditModal = false; // 🎯 État pour afficher la modale d'édition
+        let currentEditingProjectId = null; // 🎯 ID du projet en cours
+        let currentView = 'community'; // L'affichage de 'community' est conservé par défaut
+        let currentDetailProId = null;
+        let currentCommunitySubView = 'projets';
+        let projects = [];
+        let formState = {
+            type: "",
+            marque: "",
+            autres: "",
+            budget: "",
+            urgence: "",
+            email: "",
+        };
+        let submitted = false;
+        let error = "";
+        
+        // État pour la recherche de commune
+        let communitySearchQuery = '';
+
+        // 🎯 NOUVEAU: État pour le formulaire Admin
+        let adminFormState = {
+            // Type de formulaire actif (intervention ou agriculture)
+            formType: 'intervention', // 'intervention' (par défaut) ou 'agriculture'
+            communitySubViewType: 'projects', // Valeurs possibles : 'projects' (par défaut) ou 'agriculture'
+            
+            // Pour le formulaire Intervention (ancien)
+            name: '', // Nom de l'entreprise
+            specialty: '', // Profession
+            commune: '',
+            startDate: '', // Date de début
+            endDate: '', // Date de fin
+            reason: '',
+            phone: '', // Numéro de téléphone
+            email: '', // Adresse email
+            website: '', // Lien site web (facultatif)
+            
+            // Pour le formulaire Agriculture (NOUVEAU)
+            agricultureType: 'event', // 'event' (par défaut) ou 'recurrent'
+            farmName: '', // Nom de la ferme (obligatoire)
+            eventDate: '', // Date DE DÉBUT d'événement (pour événement)
+            eventEndDate: '', // NOUVEAU: Date DE FIN d'événement (pour événement)
+            openingDate: '', // Date d'ouverture (pour récurrent)
+            address: '', // Adresse (obligatoire)
+            agricultureCommune: '', // NOUVEAU : Commune pour agriculture
+            detail: '', // Détail sur l'événement/magasin (obligatoire)
+            contact: '', // Contact (obligatoire pour récurrent)
+        };
+
+        // NOUVEAU: Variable pour l'intervalle du Ticker
+        let tickerInterval = null; 
+        
+        const formFields = [
+            { name: "type", placeholder: "Ex: Barbecue de jardin connecté *", type: "text" },
+            { name: "marque", placeholder: "Ex: Weber Genesis (facultatif)", type: "text" },
+            { name: "autres", placeholder: "Modèles concurrents ou similaires (facultatif)", type: "text" },
+            { name: "budget", placeholder: "Budget maximum (€) *", type: "number" },
+            { name: "email", placeholder: "Votre adresse mail associée *", type: "email" },
+        ];
+        const requiredFields = ["type", "budget", "urgence", "email"];
+
+        const mainContent = document.getElementById('main-content');
+        const projectCountDisplay = document.getElementById('project-count');
+
+        let simulatedProfessionals = [
+            {
+                id: 'p1',
+                name: 'Plombier Express',
+                specialty: 'Plomberie & Chauffage (Dépannage et Rénovation)',
+                period: 'Du 15/10/2025 au 20/10/2025',
+                reason: 'Installation d\'une chaudière pour M. Dupont',
+                contact: 'contact@plombier-express.fr | 06 12 34 56 78',
+                commune: 'Lyon 3ème'
+            },
+            {
+                id: 'p2',
+                name: 'Électricien Sécurité',
+                specialty: 'Mise aux normes électriques (Tableaux, Câblage)',
+                period: 'Du 25/10/2025 au 30/10/2025',
+                reason: 'Rénovation complète d\'un T3, offre groupée disponible.',
+                contact: 'electricien-secu@mail.com | 06 98 76 54 32',
+                commune: 'Villeurbanne'
+            },
+            {
+                id: 'p3',
+                name: 'Jardin Vert',
+                specialty: 'Élagage, Taille de Haies, Aménagement paysager',
+                period: 'Le 05/11/2025 (Journée)',
+                reason: 'Entretien annuel du parc municipal. Possibilité d\'interventions privées le soir.',
+                contact: 'jardin-vert@pro.fr | 07 00 00 00 00',
+                commune: 'Lyon 3ème'
+            },
+            {
+                id: 'p4',
+                name: 'Menuiserie Artisanale',
+                specialty: 'Installation de cuisines et parquets',
+                period: 'Du 01/12/2025 au 15/12/2025',
+                reason: 'Pose de parquet dans 3 appartements de la même résidence.',
+                contact: 'artisan-bois@mail.com | 04 11 22 33 44',
+                commune: 'Caluire-et-Cuire'
+            },
+             {
+                id: 'p5',
+                name: 'Façade Net',
+                specialty: 'Nettoyage et ravalement de façades',
+                period: 'Du 10/01/2026 au 20/01/2026',
+                reason: 'Ravalement de façade d\'un immeuble en copropriété.',
+                contact: 'facade-net@pro.fr | 06 55 66 77 88',
+                commune: 'Villeurbanne'
+            },
+        ];
+
+        function setCommunityView(view) {
+            currentCommunitySubView = view;
+            renderCommunity(); // Force le rafraîchissement
+        }
+        window.setCommunityView = setCommunityView;
+
+
+        // 🎯 NOUVEAU: Données réelles des interventions (à remplir par Firestore)
+        let firebaseInterventions = [];
+        // 🎯 communityProfessionals sera la liste combinée
+        let communityProfessionals = simulatedProfessionals;
+
+
+        // --- 2. LOGIQUE FIREBASE ---
+        function getProjectsCollectionRef() {
+            // S'assure que Firebase et l'utilisateur sont prêts
+            if (!db || !userId) return null; 
+            // 🎯 CORRECTION: Utiliser la collection RACINE "projects"
+            return collection(db, "projects");
+        }
+
+        // 🎯 NOUVEAU: Fonction pour basculer entre les sous-vues de la section 'Ma Commune'
+        function setCommunitySubViewType(type) {
+            adminFormState.communitySubViewType = type;
+            renderCommunity(); // On appelle le rendu de la commune qui va utiliser cette nouvelle vue
+        }
+        window.setCommunitySubViewType = setCommunitySubViewType;
+
+        // 🎯 NOUVELLE FONCTION pour écouter les interventions publiées par les admins
+        function startCommunityInterventionsListener() {
+            if (!db) return;
+
+            // Requête pour écouter les documents de la collection 'community_interventions'
+            const q = query(collection(db, "community_interventions"), orderBy("createdAt", "desc"));
+
+            onSnapshot(q, (snapshot) => {
+                firebaseInterventions = snapshot.docs.map(doc => ({
+                    id: doc.id,
+                    // Ces champs sont formatés pour correspondre à la structure de renderProfessionalCard
+                    name: doc.data().name,
+                    specialty: doc.data().specialty,
+                    commune: doc.data().commune,
+                    // Les deux dates sont combinées dans le champ 'period'
+                    period: `Du ${doc.data().startDate} au ${doc.data().endDate}`, 
+                    reason: doc.data().reason,
+                    // L'email et le téléphone sont combinés dans le champ 'contact'
+                    contact: `${doc.data().email} | ${doc.data().phone}`, 
+                    website: doc.data().website || null,
+                }));
+                
+                // Mise à jour de la liste combinée (Firebase + Simulé)
+                communityProfessionals = [...firebaseInterventions, ...simulatedProfessionals];
+                
+                if (currentView === 'community') {
+                    render(); // Re-rendu de la vue communauté si elle est active
+                }
+                
+            }, (error) => {
+                console.error("Erreur d'écoute des interventions de la communauté:", error);
+            });
+        }
+
+        // 🎯 Ouvre la modale d'information avec un titre et un contenu
+        function openInfoModal(title, content) {
+            document.getElementById('info-modal-title').textContent = title;
+            document.getElementById('info-modal-body').innerHTML = content;
+            document.getElementById('info-modal').classList.remove('hidden');
+            // Animation d'ouverture
+            setTimeout(() => {
+                document.getElementById('info-modal-content').classList.remove('scale-95');
+                document.getElementById('info-modal-content').classList.add('scale-100');
+            }, 10);
+        }
+        window.openInfoModal = openInfoModal;
+
+        // 🎯 Ferme la modale d'information
+        function closeInfoModal(event) {
+            // Empêche la fermeture si l'utilisateur clique sur le contenu de la modale
+            if (event && event.target.id !== 'info-modal') {
+                return;
+            }
+            // Animation de fermeture
+            document.getElementById('info-modal-content').classList.remove('scale-100');
+            document.getElementById('info-modal-content').classList.add('scale-95');
+            setTimeout(() => {
+                document.getElementById('info-modal').classList.add('hidden');
+            }, 300);
+        }
+        window.closeInfoModal = closeInfoModal;
+
+        // La fonction setupFirebaseAndListeners est simplifiée car elle n'a plus besoin d'attendre l'authentification
+        function setupFirebaseAndListeners() {
+            try {
+                const app = initializeApp(firebaseConfig);
+                db = getFirestore(app);
+                auth = getAuth(app); 
+
+                // NOUVEAU: Écoute des changements d'état d'authentification
+                onAuthStateChanged(auth, (user) => {
+                
+                    if (user) {
+                        // Utilisateur connecté
+                        userId = user.uid; 
+                        userEmail = user.email;
+
+                        formState.email = user.email; 
+
+                        // 🎯 NOUVEAU: Récupérer le rôle de l'utilisateur
+                        const userDocRef = doc(db, "users", userId);
+                        onSnapshot(userDocRef, (docSnap) => {
+                            if (docSnap.exists() && docSnap.data().role) {
+                                userRole = docSnap.data().role;
+                            } else {
+                                userRole = 'standard'; 
+                            }
+                            console.log("Rôle de l'utilisateur mis à jour:", userRole);
+                            render(); // Re-rendu après avoir récupéré le rôle
+                        }, (error) => {
+                            console.error("Erreur lors de la récupération du rôle:", error);
+                            userRole = 'standard';
+                            render();
+                        });
+                        
+                        // Redémarre l'écouteur avec le nouvel ID
+                        startProjectListener(); 
+
+                        if (showAuthModal) showAuthModal = false; 
+                        if (currentView === 'projects' && projects.length === 0) setView('projects'); 
+
+                    } else {
+                        // Utilisateur déconnecté
+                        userId = null;
+                        userEmail = null;
+                        userRole = 'standard'; // Réinitialiser le rôle
+                        projects = []; 
+                        console.log("Utilisateur déconnecté. UserID est null.");
+                        
+                        if (currentView === 'projects' || currentView === 'admin') setView('community'); 
+                        render(); // Re-rendu pour mettre à jour la barre de navigation et la vue
+                    }
+                    
+                    isAuthReady = true; 
+                    // Si on est déconnecté, render est appelé ici. Si on est connecté, il est appelé dans onSnapshot (pour attendre le rôle).
+                    if (!user) render(); 
+                });
+                
+                // 🎯 NOUVEAU: Démarrage de l'écouteur des projets communautaires (Admin)
+                startCommunityInterventionsListener();
+
+
+            } catch (err) {
+                console.error("Erreur de configuration Firebase:", err);
+            }
+        }
+
+        function startProjectListener() {
+            // Tente d'abord d'utiliser l'ID de la variable globale (méthode standard)
+            let currentUserId = userId; 
+            
+            // 🛑 VÉRIFICATION DE SECOURS : Si l'ID est null, essaie de le récupérer directement
+            // via l'objet Firebase Auth, qui a l'information la plus récente.
+            if (!currentUserId && auth && auth.currentUser) {
+                currentUserId = auth.currentUser.uid;
+                // Mettre à jour la variable globale par sécurité
+                userId = currentUserId; 
+            }
+
+            // Utiliser la fonction pour obtenir la référence (collection "projects")
+            const projectsRef = getProjectsCollectionRef();
+            
+            // 🛑 Logique de sécurité : Si l'ID n'est toujours pas là, on s'arrête
+            if (!projectsRef || !currentUserId) {
+                projects = []; 
+                projectCountDisplay.textContent = 0;
+                console.warn("Écouteur de projets arrêté : L'utilisateur n'est pas connecté.");
+                render(); // Forcer le rendu pour afficher le message "connectez-vous"
+                return;
+            } 
+
+            // 🎯 LOG CRITIQUE : VÉRIFIEZ CE MESSAGE DANS LA CONSOLE (F12) !
+            console.log("UserID utilisé pour le filtre : ", currentUserId); 
+            console.log("Filtre en cours sur le champ : userId"); 
+            
+            // 🎯 Requête avec le filtre
+            const q = query(
+                projectsRef, 
+                // ⚠️ UTILISER 'currentUserId' et le champ 'userId' 
+                where("userId", "==", currentUserId), 
+                orderBy("dateSoumission", "desc") 
+            );
+
+            // Utilisation de onSnapshot sur la requête filtrée 'q'
+            onSnapshot(q, (snapshot) => {
+                const fetchedProjects = snapshot.docs.map(doc => ({
+                    id: doc.id,
+                    ...doc.data()
+                }));
+                
+                projects = fetchedProjects;
+                projectCountDisplay.textContent = projects.length;
+                
+                if (currentView === 'projects') {
+                    render();
+                }
+            }, (error) => {
+                console.error("Erreur d'écoute de Firestore (règles de sécurité probables) :", error);
+                // Si l'erreur est une permission refusée, vide la liste pour ne rien afficher.
+                if (error.code === 'permission-denied') {
+                     projects = [];
+                     projectCountDisplay.textContent = 0;
+                     render();
+                }
+            });
+        }
+
+        async function saveProject(projectData) {
+            // Pas de vérification d'userId car il est statique ('public') et isAuthReady est vrai par défaut.
+            if (!db) {
+                error = "Connexion à la base de données non établie. Réessayez.";
+                render();
+                return false;
+            }
+            try {
+                const projectsRef = getProjectsCollectionRef();
+                // Utilisation de setDoc avec un ID généré pour une meilleure gestion des documents.
+                // Le statut par défaut est 'En attente'.
+                const newDocRef = doc(projectsRef); 
+                await setDoc(newDocRef, {
+                    ...projectData,
+                    status: 'En attente', 
+                    createdAt: serverTimestamp() // Ajout d'un horodatage pour le tri
+                });
+                return true;
+            } catch (e) {
+                console.error("Erreur d'écriture de document: ", e);
+                error = "Impossible de sauvegarder le projet. " + e.message;
+                render();
+                return false;
+            }
+        }
+
+        async function updateProjectStatus(projectId, newStatus) {
+            if (!db) return; // Plus besoin de vérifier userId
+            try {
+                // Utilisation de l'ID statique 'public'
+                const docRef = doc(db, `artifacts/${appId}/users/${userId}/projects`, projectId);
+                await setDoc(docRef, { status: newStatus }, { merge: true });
+            } catch (e) {
+                console.error("Erreur de mise à jour du statut: ", e);
+            }
+        }
+        window.updateProjectStatus = updateProjectStatus; // Rendre disponible globalement
+
+        async function deleteProject(projectId) {
+             if (!db) return; 
+             // Le chemin de collection est celui de la racine pour la suppression
+             if (confirm("Êtes-vous sûr de vouloir supprimer ce projet ?")) { 
+                try {
+                    const docRef = doc(db, "projects", projectId); 
+                    await deleteDoc(docRef);
+                } catch (e) {
+                    console.error("Erreur de suppression du projet: ", e);
+                }
+             }
+             // L'écouteur (onSnapshot) mettra à jour l'affichage automatiquement
+        }
+        // 🎯 C'EST CETTE LIGNE QUI LA REND ACCESSIBLE AU BOUTON HTML
+        window.deleteProject = deleteProject;
+
+        // --- 3. FONCTIONS DE GESTION DES ÉTATS ET ÉVÉNEMENTS ---
+
+        window.setView = (view) => {
+            currentView = view;
+            submitted = false; // Réinitialiser le message de succès à chaque changement de vue
+            // NOUVEAU: Arrêter le ticker si on quitte la vue "community"
+            if (tickerInterval) {
+                clearInterval(tickerInterval);
+                tickerInterval = null;
+            }
+            render();
+        }
+
+        function handleChange(e) {
+            formState = {
+                ...formState,
+                [e.target.name]: e.target.value
+            };
+            if (error) {
+                error = "";
+                render();
+            }
+        }
+        window.handleChange = handleChange; // Rendre disponible globalement
+        
+        // Nouvelle fonction pour gérer la saisie de recherche de commune
+        function handleCommunitySearch(e) {
+            communitySearchQuery = e.target.value;
+            render(); // Déclenche le re-rendu pour appliquer le filtre
+        }
+        window.handleCommunitySearch = handleCommunitySearch; // Rendre disponible globalement
+
+        // 🎯 NOUVEAU: Handler pour les changements du formulaire Admin
+        function handleAdminChange(e) {
+            adminFormState = {
+                ...adminFormState,
+                [e.target.name]: e.target.value
+            };
+        }
+        window.handleAdminChange = handleAdminChange; // Rendre disponible globalement
+
+        // 🎯 MISE À JOUR : Soumission du formulaire Admin pour Intervention OU Agriculture
+        async function handleAdminSubmit(e) {
+            e.preventDefault();
+            
+            if (userRole !== 'admin') {
+                document.getElementById('admin-message').textContent = "Erreur: Vous n'avez pas les permissions d'administrateur.";
+                document.getElementById('admin-message').classList.add('text-red-600');
+                return;
+            }
+
+            const submitButton = document.getElementById('admin-submit-button');
+            submitButton.textContent = 'Publication en cours...';
+            submitButton.disabled = true;
+            submitButton.classList.add('opacity-50');
+
+            let requiredFields, collectionName, formSpecificState, buttonText;
+            
+            // Logique pour l'Intervention (Projet)
+            if (adminFormState.formType === 'intervention') {
+                requiredFields = ['name', 'specialty', 'commune', 'startDate', 'endDate', 'reason', 'phone', 'email'];
+                collectionName = "community_interventions";
+                buttonText = 'Publier l\'Intervention';
+                formSpecificState = {
+                    name: adminFormState.name, specialty: adminFormState.specialty, commune: adminFormState.commune, 
+                    startDate: adminFormState.startDate, endDate: adminFormState.endDate, reason: adminFormState.reason,
+                    phone: adminFormState.phone, email: adminFormState.email, website: adminFormState.website,
+                };
+            }
+            // Logique pour l'Agriculture (Événement ou Magasin Récurrent)
+            else if (adminFormState.formType === 'agriculture') {
+                collectionName = "agriculture_events"; // Nouvelle collection pour l'agriculture
+                
+                // Champs de base pour les deux types d'agriculture, incluant la commune
+                requiredFields = ['farmName', 'address', 'agricultureCommune', 'detail']; // ✅ MODIFIÉ : Ajout de agricultureCommune
+                buttonText = 'Publier l\'Agriculture';
+                
+                if (adminFormState.agricultureType === 'event') {
+                    requiredFields.push('eventDate', 'eventEndDate'); // ✅ MODIFIÉ : eventEndDate ajouté (précédente modification)
+                    formSpecificState = {
+                        farmName: adminFormState.farmName,
+                        startDate: adminFormState.eventDate, // Renommé pour plus de clarté dans la DB
+                        endDate: adminFormState.eventEndDate, // NOUVEAU champ de fin 
+                        address: adminFormState.address, 
+                        commune: adminFormState.agricultureCommune, // ✅ MODIFIÉ : Ajout de la commune
+                        detail: adminFormState.detail, 
+                        contact: adminFormState.contact || 'Non spécifié', // Contact facultatif
+                        type: 'event',
+                    };
+                } else { // 'recurrent' (Magasin)
+                    requiredFields.push('openingDate', 'contact'); // Date d'ouverture et Contact obligatoires
+                    formSpecificState = {
+                        farmName: adminFormState.farmName, date: adminFormState.openingDate, 
+                        address: adminFormState.address, 
+                        commune: adminFormState.agricultureCommune, // ✅ MODIFIÉ : Ajout de la commune
+                        detail: adminFormState.detail, 
+                        contact: adminFormState.contact,
+                        type: 'recurrent_store',
+                    };
+                }
+            } else {
+                 document.getElementById('admin-message').textContent = "Erreur: Type de formulaire inconnu.";
+                 document.getElementById('admin-message').classList.remove('text-green-600');
+                 document.getElementById('admin-message').classList.add('text-red-600');
+                 submitButton.textContent = 'Erreur de soumission';
+                 submitButton.disabled = false;
+                 submitButton.classList.remove('opacity-50');
+                 return;
+            }
+
+            // Vérification des champs requis
+            const missingField = requiredFields.find(field => !adminFormState[field]);
+
+            if (missingField) {
+                const fieldNameMap = {
+                    name: "Nom de l'entreprise", specialty: "Profession", commune: "Commune", 
+                    startDate: "Date de début", endDate: "Date de fin", reason: "Raison de l'intervention", 
+                    phone: "Téléphone", email: "Email", farmName: "Nom de la ferme", 
+                    eventDate: "Date de DÉBUT/Horaire de l'événement", 
+                    eventEndDate: "Date de FIN/Horaire de l'événement", 
+                    openingDate: "Date/Horaire d'ouverture",
+                    address: "Adresse", 
+                    agricultureCommune: "Commune", // ✅ MODIFIÉ : Ajout de l'intitulé
+                    detail: "Détail", contact: "Contact"
+                };
+
+                document.getElementById('admin-message').textContent = `Veuillez remplir le champ requis : ${fieldNameMap[missingField] || missingField}.`;
+                document.getElementById('admin-message').classList.remove('text-green-600');
+                document.getElementById('admin-message').classList.add('text-red-600');
+                
+                submitButton.textContent = buttonText;
+                submitButton.disabled = false;
+                submitButton.classList.remove('opacity-50');
+                return;
+            }
+            
+            // Préparation des données pour Firebase
+            const dataToSave = {
+                ...formSpecificState,
+                createdAt: serverTimestamp(),
+            };
+
+            try {
+                await addDoc(collection(db, collectionName), dataToSave);
+                
+                document.getElementById('admin-message').textContent = `${adminFormState.formType === 'intervention' ? 'Intervention' : 'Événement Agricole'} publiée avec succès !`;
+                document.getElementById('admin-message').classList.remove('text-red-600');
+                document.getElementById('admin-message').classList.add('text-green-600');
+
+                // Réinitialiser l'état du formulaire (sauf le type de formulaire)
+                adminFormState = {
+                    formType: adminFormState.formType, // Garder le type sélectionné
+                    agricultureType: adminFormState.agricultureType, // Garder le sous-type sélectionné
+                    name: '', specialty: '', commune: '', startDate: '', endDate: '', 
+                    reason: '', phone: '', email: '', website: '',
+                    farmName: '', eventDate: '', eventEndDate: '', openingDate: '', address: '', agricultureCommune: '', detail: '', contact: '' // ✅ MODIFIÉ : agricultureCommune ajouté
+                };
+                
+                renderAdmin(); 
+                
+            } catch (err) {
+                console.error("Erreur lors de la publication : ", err);
+                document.getElementById('admin-message').textContent = "Erreur lors de la publication : " + err.message;
+                document.getElementById('admin-message').classList.remove('text-green-600');
+                document.getElementById('admin-message').classList.add('text-red-600');
+
+            } finally {
+                submitButton.textContent = buttonText;
+                submitButton.disabled = false;
+                submitButton.classList.remove('opacity-50');
+            }
+        }
+        window.handleAdminSubmit = handleAdminSubmit;
+
+        // NOUVEAU: Logique du Ticker pour faire défiler les infos sur les cartes
+        function startTicker() {
+            if (tickerInterval) {
+                clearInterval(tickerInterval);
+            }
+            
+            const rotateContent = (tickerElement) => {
+                const items = Array.from(tickerElement.querySelectorAll('.ticker-item'));
+                if (items.length === 0) return;
+
+                const activeItem = tickerElement.querySelector('.ticker-item.active');
+                let currentIndex = activeItem ? parseInt(activeItem.dataset.index, 10) : -1;
+                
+                // Calculer l'index suivant (cycle)
+                const nextIndex = (currentIndex + 1) % items.length;
+
+                // Désactiver l'actuel
+                if (activeItem) {
+                    activeItem.classList.remove('active');
+                    activeItem.style.display = 'none';
+                }
+                
+                // Activer le suivant
+                const nextItem = items[nextIndex];
+                nextItem.style.display = 'block';
+                // Petit délai pour permettre à la propriété 'display: block' de prendre effet avant la transition d'opacité/transform
+                setTimeout(() => {
+                    nextItem.classList.add('active');
+                }, 10); 
+            };
+
+            const allTickerContainers = document.querySelectorAll('.ticker-container');
+            
+            // Lancer la première rotation immédiatement pour tous les conteneurs
+            allTickerContainers.forEach(rotateContent); 
+
+            // Définir l'intervalle pour les rotations suivantes (toutes les 4 secondes)
+            tickerInterval = setInterval(() => {
+                allTickerContainers.forEach(rotateContent);
+            }, 4000); 
+        }
+
+
+        async function handleSubmit(e) {
+            e.preventDefault();
+            
+            if (!userId) {
+                error = "Vous devez être connecté pour soumettre un projet.";
+                window.toggleAuthModal(true);
+                await render();
+                return;
+            }
+            
+            // Assurez-vous que requiredFields est défini globalement ou avant cette fonction
+            const requiredFields = [
+                { name: 'type', placeholder: 'Type de projet*' },
+                { name: 'budget', placeholder: 'Budget estimé (en €)*' },
+                { name: 'urgence', placeholder: 'Niveau d’urgence*' },
+                { name: 'email', placeholder: 'Votre e-mail de contact*' },
+            ];
+            
+            const missingField = requiredFields.find(field => 
+                !formState[field.name]
+            );
+
+            if (missingField && missingField.name !== 'description') {
+                error = `Veuillez remplir le champ requis : ${missingField.placeholder.replace('*', '')}`;
+                await render();
+                return;
+            }
+            
+            const submitButton = document.getElementById('submit-button');
+            if (submitButton) {
+                submitButton.textContent = 'Envoi en cours...';
+                submitButton.disabled = true;
+                submitButton.classList.add('opacity-50');
+            }
+
+            try {
+                const projectData = {
+                    type: formState.type || 'Non spécifié',
+                    title: formState.title || formState.type || 'Nouveau Projet',
+                    description: formState.description || 'Pas de description',
+                    budget: parseFloat(formState.budget) || 0,
+                    urgence: formState.urgence || 'Jattends loccasion',
+                    email: formState.email, 
+                    userId: userId, 
+                    status: 'En attente',
+                    dateSoumission: new Date().toISOString(),
+                };
+
+                // 👈 SAUVEGARDE DANS FIRESTORE
+                await addDoc(collection(db, "projects"), projectData);
+                
+                // Succès
+                formState = { type: '', title: '', description: '', budget: '', urgence: '', email: '' };
+                error = null;
+                submitted = true;
+                setView('confirmation');
+
+            } catch (err) {
+                console.error("Erreur lors de l'ajout du document : ", err);
+                error = "Une erreur est survenue lors de l'envoi de votre projet. Veuillez réessayer.";
+                
+                // Rétablir le bouton en cas d'erreur
+                if (submitButton) {
+                    submitButton.textContent = 'Envoyer ma demande';
+                    submitButton.disabled = false;
+                    submitButton.classList.remove('opacity-50');
+                }
+            } finally {
+                await render(); // Assure le rafraîchissement
+            }
+        }
+        window.handleSubmit = handleSubmit; // Rendre disponible globalement
+        
+
+        // --- NOUVEAU: FONCTIONS D'AUTHENTIFICATION & MODALE ---
+        let isSignInView = true; // État interne de la modale (Connexion vs. Inscription)
+
+        // Rendre la déconnexion globale
+        window.handleSignOut = async () => {
+            try {
+                await signOut(auth);
+                // L'état sera mis à jour par onAuthStateChanged
+            } catch (e) {
+                console.error("Erreur de déconnexion:", e);
+                alert("Erreur de déconnexion: " + e.message);
+            }
+        };
+
+        window.toggleAuthModal = (forceOpen = false) => {
+            // Si déjà connecté, on gère la déconnexion
+            if (userId && !forceOpen) {
+                if(confirm(`Êtes-vous sûr de vouloir vous déconnecter de ${userEmail.split('@')[0]} ?`)) {
+                    window.handleSignOut();
+                }
+                return; // Stoppe l'ouverture de la modale
+            }
+            
+            // Sinon, on affiche/masque la modale
+            showAuthModal = forceOpen || !showAuthModal;
+            render(); // Re-rendu pour afficher/masquer la modale
+        };
+
+        window.toggleAuthMode = () => {
+            isSignInView = !isSignInView;
+            renderAuthModalContent();
+        }
+
+        window.handleAuthSubmit = async (e) => {
+            e.preventDefault();
+            const email = e.target.email.value;
+            const password = e.target.password.value;
+            let errorMsg = "";
+
+            try {
+                if (isSignInView) {
+                    // Tentative de connexion
+                    await signInWithEmailAndPassword(auth, email, password);
+                } else {
+                    // Tentative d'inscription
+                    const userCredential = await createUserWithEmailAndPassword(auth, email, password);
+                    const newUser = userCredential.user;
+                    
+                    // 🎯 NOUVEAU : Ajouter l'utilisateur et son rôle par défaut (standard) à Firestore
+                    await setDoc(doc(db, "users", newUser.uid), {
+                        email: newUser.email,
+                        role: 'standard', // Rôle par défaut
+                        createdAt: serverTimestamp()
+                    });
+                }
+
+                // Si succès, onAuthStateChanged va gérer la suite et fermer la modale.
+            } catch (e) {
+                // Gérer les erreurs de Firebase 
+                if (e.code === 'auth/email-already-in-use') {
+                    errorMsg = "Cette adresse e-mail est déjà utilisée. Essayez de vous connecter.";
+                } else if (e.code === 'auth/invalid-email' || e.code === 'auth/wrong-password' || e.code === 'auth/user-not-found' || e.code === 'auth/invalid-credential') {
+                    errorMsg = "Email ou mot de passe incorrect.";
+                } else if (e.code === 'auth/weak-password') {
+                    errorMsg = "Le mot de passe doit contenir au moins 6 caractères.";
+                } else {
+                    errorMsg = "Erreur d'authentification: " + e.message;
+                }
+                document.getElementById('auth-error-message').textContent = errorMsg;
+            }
+        };
+
+
+        function renderAuthModalContent() {
+            const container = document.getElementById('auth-form-container');
+            if (!container) return; // Sécurité
+            
+            const title = isSignInView ? "Connexion" : "Inscription";
+            const buttonText = isSignInView ? "Se connecter" : "Créer un compte";
+            const toggleText = isSignInView ? "Pas de compte ? S'inscrire" : "Déjà un compte ? Se connecter";
+            
+            container.innerHTML = `
+                <header class="text-center mb-6">
+                    <h3 class="text-2xl font-bold text-gray-900">${title}</h3>
+                    <p class="text-sm text-gray-600">Pour gérer vos projets personnels.</p>
+                </header>
+                
+                <form onsubmit="window.handleAuthSubmit(event)" class="flex flex-col gap-4">
+                    <input name="email" type="email" placeholder="Adresse e-mail" required
+                        class="w-full p-3 rounded-xl glass-input text-gray-900 placeholder-gray-600 focus:outline-none" />
+                    <input name="password" type="password" placeholder="Mot de passe (min. 6 caractères)" required
+                        class="w-full p-3 rounded-xl glass-input text-gray-900 placeholder-gray-600 focus:outline-none" />
+                    
+                    <p id="auth-error-message" class="text-red-600 text-sm font-medium text-center"></p>
+                    
+                    <button type="submit" class="mt-2 w-full text-center text-white font-bold p-3 rounded-xl shadow-lg apple-button">
+                        ${buttonText}
+                    </button>
+                    
+                    <button type="button" onclick="window.toggleAuthMode()" class="text-sm text-blue-600 hover:text-blue-800 transition-colors mt-2">
+                        ${toggleText}
+                    </button>
+                </form>
+                
+                <button type="button" onclick="window.toggleAuthModal()" class="absolute top-3 right-3 text-gray-600 hover:text-gray-900 p-2 rounded-full bg-white/50 transition-colors">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+                </button>
+            `;
+        }
+
+        // Fonction pour gérer l'affichage de la modale avec animation
+        function updateAuthModalDisplay() {
+            const modal = document.getElementById('auth-modal');
+            const container = document.getElementById('auth-form-container');
+            
+            if (!modal || !container) return;
+
+            if (showAuthModal) {
+                modal.style.display = 'flex';
+                // Petit délai pour l'animation
+                setTimeout(() => {
+                    modal.style.opacity = '1';
+                    container.style.opacity = '1';
+                    container.style.transform = 'scale(1)';
+                }, 10); 
+                renderAuthModalContent(); // Rendu du contenu au moment de l'ouverture
+            } else {
+                modal.style.opacity = '0';
+                container.style.opacity = '0';
+                container.style.transform = 'scale(0.95)';
+                // Attendre la fin de la transition pour masquer le display
+                setTimeout(() => {
+                    modal.style.display = 'none';
+                }, 300); 
+            }
+        }
+
+                function openDetailModal(proId) {
+            currentDetailProId = proId;
+            // ... (Logique de recherche du professionnel inchangée)
+            const pro = communityProfessionals.find(p => p.id === proId);
+            
+            if (!pro) {
+                console.error("Professionnel non trouvé pour l'ID:", proId);
+                return;
+            }
+            
+            const detailBody = document.getElementById('pro-detail-body');
+            const websiteLink = pro.website ? `
+                <div class="flex items-center gap-3 p-4 bg-white/40 rounded-xl shadow-inner">
+                    <svg class="w-6 h-6 text-blue-600 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"></path></svg>
+                    <p class="text-gray-700 font-medium truncate">
+                        Site Web : 
+                        <a href="${pro.website}" target="_blank" class="text-blue-700 hover:text-blue-500 hover:underline font-bold">${pro.website.replace(/https?:\/\//, '').split('/')[0]}</a>
+                    </p>
+                </div>
+            ` : '';
+            
+            // Contenu détaillé injecté
+            detailBody.innerHTML = `
+                <h2 class="text-3xl font-extrabold text-gray-900 mb-2">${pro.name}</h2>
+                <span class="text-sm font-medium text-blue-700 bg-blue-200/50 px-3 py-1 rounded-full inline-block mb-6 shadow-sm">${pro.specialty}</span>
+                
+                <div class="space-y-4 text-gray-700">
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                        <div class="flex items-center gap-3 p-4 bg-white/40 rounded-xl shadow-inner">
+                            <svg class="w-6 h-6 text-gray-600 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.828 0l-4.243-4.243a8 8 0 1111.314 0z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"></path></svg>
+                            <p class="font-semibold text-gray-800">${pro.commune}</p>
+                        </div>
+                        
+                        <div class="flex items-center gap-3 p-4 bg-white/40 rounded-xl shadow-inner">
+                            <svg class="w-6 h-6 text-gray-600 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg>
+                            <p class="font-semibold text-gray-800">${pro.period}</p>
+                        </div>
+                    </div>
+
+                    <div class="p-4 bg-white/40 rounded-xl shadow-inner">
+                        <p class="font-bold mb-2 text-gray-800 flex items-center gap-2 border-b pb-2 border-gray-300/50">
+                            <svg class="w-5 h-5 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path></svg>
+                            Détail de la Mission :
+                        </p>
+                        <p class="mt-2">${pro.reason}</p>
+                    </div>
+                    
+                    <div class="p-4 bg-green-100/50 rounded-xl space-y-2 border border-green-200/70">
+                        <p class="font-bold text-gray-800 flex items-center gap-2">
+                            <svg class="w-5 h-5 text-green-700" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"></path></svg>
+                            Email : <a href="mailto:${pro.contact.split(' | ')[0]}" class="text-blue-700 hover:underline">${pro.contact.split(' | ')[0]}</a>
+                        </p>
+                        <p class="font-bold text-gray-800 flex items-center gap-2">
+                            <svg class="w-5 h-5 text-green-700" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z"></path></svg>
+                            Téléphone : <span class="text-gray-900">${pro.contact.split(' | ')[1]}</span>
+                        </p>
+                    </div>
+                    
+                    ${websiteLink}
+
+                </div>
+            `;
+            
+            // Afficher la modale
+            document.getElementById('pro-detail-modal').classList.remove('hidden');
+        }
+        window.openDetailModal = openDetailModal;
+
+        // 🎯 NOUVELLE FONCTION: Ferme la modale de détail
+        function closeDetailModal() {
+            document.getElementById('pro-detail-modal').classList.add('hidden');
+            currentDetailProId = null; 
+        }
+        window.closeDetailModal = closeDetailModal;
+
+        function renderForm() {
+            // Mise à jour de l'état des boutons de navigation
+            document.getElementById('nav-form').classList.add('bg-white/50');
+            document.getElementById('nav-projects').classList.remove('bg-white/50');
+            document.getElementById('nav-community').classList.remove('bg-white/50');
+            
+            // Le conteneur principal a été ajusté pour centrer le formulaire verticalement
+            mainContent.classList.add('form-view-container', 'items-center', 'py-8');
+            mainContent.classList.remove('items-start', 'pt-8'); // Nettoyage des styles de la vue Projets
+            
+            mainContent.innerHTML = ''; // Nettoyer avant d'ajouter le contenu
+
+            if (!isAuthReady) {
+                 // Afficher un message de chargement si l'état d'authentification n'est pas encore prêt
+                mainContent.innerHTML = `
+                    <div class="p-12 text-center liquid-glass rounded-3xl w-full max-w-xl text-gray-700 font-medium">
+                        Vérification de votre statut de connexion...
+                    </div>
+                `;
+                return; // Arrêter le rendu du formulaire
+            }
+
+            if (!userId) {
+                // Afficher le "blocage" avec le bouton de connexion si l'utilisateur n'est pas connecté
+                mainContent.innerHTML = `
+                    <div class="relative p-12 text-center liquid-glass rounded-3xl w-full max-w-xl shadow-2xl">
+                        <svg class="w-16 h-16 text-blue-500 mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M11 16l-4-4m0 0l4-4m-4 4h14m-5 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h7a3 3 0 013 3v1"></path></svg>
+                        <h2 class="text-2xl font-bold text-gray-900 mb-2">
+                            Authentification Requise
+                        </h2>
+                        <p class="text-gray-700 mb-6">
+                            Veuillez vous connecter ou vous inscrire pour soumettre un nouveau projet et le suivre.
+                        </p>
+                        <button onclick="window.toggleAuthModal(true)" class="apple-button text-white px-8 py-3 rounded-xl text-lg font-semibold shadow-lg">
+                            Se connecter / S'inscrire
+                        </button>
+                    </div>
+                `;
+                return; // Arrêter le rendu du formulaire
+            }
+            
+            // Logique du champ Email simplifié
+            // Si l'utilisateur est connecté, on utilise son email. Sinon, on utilise l'état du formulaire.
+            const defaultEmail = userEmail || formState.email || ''; 
+            // Vrai si l'email vient du compte (pour le style)
+            const isEmailFromAccount = !!userEmail; 
+
+
+            // Si userId est présent, nous continuons avec le rendu normal du formulaire
+            const formElement = document.createElement('form');
+            formElement.className = "p-8 sm:p-10 flex flex-col gap-7 font-sans text-gray-800 rounded-3xl liquid-glass w-full max-w-xl"; 
+            formElement.onsubmit = handleSubmit;
+            
+            formElement.innerHTML = `
+                <header class="text-center mb-2">
+                    <h1 class="text-3xl font-bold text-gray-900 drop-shadow-sm">
+                        Nouvelle Demande
+                    </h1>
+                    <p class="text-gray-700 mt-2 text-sm font-medium">
+                        Décrivez brièvement vos attentes pour obtenir une réponse rapide.
+                    </p>
+                </header>
+
+                <div class="flex flex-col gap-5">
+                    <div class="w-full input-wrapper">
+                        <input
+                            name="${formFields[0].name}"
+                            type="${formFields[0].type || 'text'}"
+                            placeholder="${formFields[0].placeholder}"
+                            value="${formState.type}"
+                            oninput="window.handleChange(event)"
+                            class="w-full p-5 rounded-xl glass-input text-gray-900 placeholder-gray-600 focus:outline-none text-base"
+                            ${formFields[0].placeholder.includes('*') ? 'required' : ''}
+                        />
+                    </div>
+                    
+                    ${formFields.slice(1, 3).map(f => `
+                        <div class="w-full input-wrapper">
+                            <input
+                                name="${f.name}"
+                                type="${f.type || 'text'}"
+                                placeholder="${f.placeholder}"
+                                value="${formState[f.name]}"
+                                oninput="window.handleChange(event)"
+                                class="w-full p-5 rounded-xl glass-input text-gray-900 placeholder-gray-600 focus:outline-none text-base"
+                            />
+                        </div>
+                    `).join('')}
+                </div>
+
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-5">
+                    <div class="w-full input-wrapper">
+                        <input
+                            name="budget"
+                            type="number"
+                            placeholder="${formFields.find(f => f.name === 'budget').placeholder}"
+                            value="${formState.budget}"
+                            oninput="window.handleChange(event)"
+                            class="w-full p-5 rounded-xl glass-input text-gray-900 placeholder-gray-600 focus:outline-none text-base"
+                            required
+                        />
+                    </div>
+                </div>
+                
+                <div class="w-full input-wrapper">
+                    <label for="email" class="block text-sm font-medium text-gray-700 mb-1">
+                        Adresse e-mail pour le suivi
+                        ${isEmailFromAccount ? `<span class="text-xs text-blue-600 font-semibold">(Par défaut: Compte connecté)</span>` : ''}
+                    </label>
+                    <input
+                        name="email"
+                        type="email"
+                        id="email"
+                        placeholder="${formFields.find(f => f.name === 'email').placeholder}"
+                        value="${defaultEmail}"
+                        oninput="window.handleChange(event)"
+                        class="w-full p-5 rounded-xl text-gray-900 focus:outline-none text-base 
+                            ${isEmailFromAccount ? 'bg-blue-50/50 border border-blue-200 glass-input' : 'glass-input'}"
+                        required
+                    />
+                </div>
+                ${error ? `
+                    <p class="text-red-700 bg-red-100/70 border border-red-300 rounded-xl p-3 text-sm font-semibold text-center mt-2">
+                        ${error}
+                    </p>
+                ` : ''}
+
+                <button type="submit" id="submit-button" class="mt-4 w-full text-center text-white font-bold p-5 rounded-xl shadow-lg text-lg apple-button">
+                    Envoyer ma demande
+                </button>
+            `;
+
+            // Ajout du JS pour simuler le hover Framer Motion
+            formElement.querySelectorAll('.input-wrapper').forEach(wrapper => {
+                const transitionStyle = 'transform 0.4s cubic-bezier(0.2, 0.8, 0.2, 1), box-shadow 0.4s cubic-bezier(0.2, 0.8, 0.2, 1)';
+                wrapper.onmouseover = () => {
+                    wrapper.style.transform = 'scale(1.02)';
+                    wrapper.style.boxShadow = '0 15px 30px rgba(0,0,0,0.15), 0 0 0 1px rgba(255, 255, 255, 0.8)'; 
+                    wrapper.style.transition = transitionStyle;
+                };
+                wrapper.onmouseout = () => {
+                    wrapper.style.transform = 'scale(1)';
+                    wrapper.style.boxShadow = 'none'; 
+                    wrapper.style.transition = transitionStyle;
+                };
+            });
+
+            mainContent.appendChild(formElement);
+        }
+
+        // NOUVEAU: Fonction pour changer le type de formulaire Admin (Intervention/Agriculture)
+        window.setAdminFormType = (type) => {
+             // Réinitialiser les messages d'erreur et de succès lors du changement
+             const adminMessage = document.getElementById('admin-message');
+             if (adminMessage) adminMessage.textContent = '';
+             
+             adminFormState = { 
+                 ...adminFormState, 
+                 formType: type,
+                 // Réinitialiser tous les champs spécifiques pour éviter les erreurs de validation
+                 name: '', specialty: '', commune: '', startDate: '', endDate: '', 
+                 reason: '', phone: '', email: '', website: '',
+                 farmName: '', eventDate: '', openingDate: '', address: '', detail: '', contact: ''
+             };
+             renderAdmin();
+        };
+
+        // NOUVEAU: Fonction pour changer le sous-type d'Agriculture (Événement/Magasin)
+        window.setAgricultureType = (type) => {
+             // Réinitialiser les messages d'erreur lors du changement de sous-type
+             const adminMessage = document.getElementById('admin-message');
+             if (adminMessage) adminMessage.textContent = '';
+             
+             adminFormState = { 
+                 ...adminFormState, 
+                 agricultureType: type,
+                 // Garder le nom de la ferme et l'adresse lors du changement de sous-type pour plus de confort
+                 eventDate: '', 
+                 openingDate: '', 
+                 detail: '', 
+                 contact: ''
+             };
+             renderAdmin(); // Forcer le re-rendu
+        };
+
+        function getCurrentView() {
+            // Logique pour lire la vue depuis l'URL (si définie)
+            const params = new URLSearchParams(window.location.search);
+            const urlView = params.get('view');
+            
+            if (urlView) {
+                return urlView;
+            }
+
+            // 🎯 MODIFICATION CLÉ: Si l'utilisateur n'est PAS connecté,
+            // la vue par défaut devient 'community' (Communauté).
+            if (!userId) { // Utilisez userId pour vérifier la connexion
+                // 1. On s'assure que l'onglet 'agriculture' de la vue 'community' est actif.
+                currentCommunitySubView = 'agriculture'; 
+                // 2. On retourne la vue principale 'community'.
+                return 'community'; 
+            }
+            
+            // Si l'utilisateur est connecté et aucune vue définie dans l'URL, retourne la vue par défaut 'form'
+            return 'form'; 
+        }
+        
+        // Fonction pour rendre le formulaire d'Intervention (Projet - Formulaire actuel inchangé)
+        function renderInterventionForm() {
+            return `
+                <form onsubmit="window.handleAdminSubmit(event)" class="flex flex-col gap-5">
+                    <input name="name" type="text" placeholder="Nom de l'entreprise *" required value="${adminFormState.name}" oninput="window.handleAdminChange(event)" class="w-full p-3 rounded-xl glass-input text-gray-900 placeholder-gray-600 focus:outline-none" />
+                    <input name="specialty" type="text" placeholder="Profession / Spécialité *" required value="${adminFormState.specialty}" oninput="window.handleAdminChange(event)" class="w-full p-3 rounded-xl glass-input text-gray-900 placeholder-gray-600 focus:outline-none" />
+                    <input name="commune" type="text" placeholder="Commune d'intervention *" required value="${adminFormState.commune}" oninput="window.handleAdminChange(event)" class="w-full p-3 rounded-xl glass-input text-gray-900 placeholder-gray-600 focus:outline-none" />
+                    
+                    <div class="grid grid-cols-2 gap-3">
+                        <input name="startDate" type="date" placeholder="Date de début *" required value="${adminFormState.startDate}" oninput="window.handleAdminChange(event)" class="w-full p-3 rounded-xl glass-input text-gray-900 placeholder-gray-600 focus:outline-none" />
+                        <input name="endDate" type="date" placeholder="Date de fin *" required value="${adminFormState.endDate}" oninput="window.handleAdminChange(event)" class="w-full p-3 rounded-xl glass-input text-gray-900 placeholder-gray-600 focus:outline-none" />
+                    </div>
+
+                    <textarea name="reason" placeholder="Raison de l'intervention / Détails du chantier *" required oninput="window.handleAdminChange(event)" class="w-full p-3 rounded-xl glass-input text-gray-900 placeholder-gray-600 focus:outline-none h-24">${adminFormState.reason}</textarea>
+
+                    <input name="phone" type="tel" placeholder="Téléphone de contact *" required value="${adminFormState.phone}" oninput="window.handleAdminChange(event)" class="w-full p-3 rounded-xl glass-input text-gray-900 placeholder-gray-600 focus:outline-none" />
+                    <input name="email" type="email" placeholder="Email de contact *" required value="${adminFormState.email}" oninput="window.handleAdminChange(event)" class="w-full p-3 rounded-xl glass-input text-gray-900 placeholder-gray-600 focus:outline-none" />
+                    <input name="website" type="url" placeholder="Lien Site Web (facultatif)" value="${adminFormState.website}" oninput="window.handleAdminChange(event)" class="w-full p-3 rounded-xl glass-input text-gray-900 placeholder-gray-600 focus:outline-none" />
+                    
+                    <p id="admin-message" class="text-sm font-medium text-center"></p>
+                    <button type="submit" id="admin-submit-button" class="mt-4 w-full text-center text-white font-bold p-3 rounded-xl shadow-lg apple-button"> Publier l'Intervention </button>
+                </form>
+            `;
+        }
+
+        // 🎯 NOUVEAU: Fonction pour récupérer et afficher les événements/magasins Agricoles
+        async function renderAgricultureEvents() {
+            const container = document.getElementById('main-content');
+            let eventsHtml = '';
+            
+            // 1. Récupération des données depuis Firebase
+            try {
+                const q = query(collection(db, "agriculture_events"), orderBy("startDate", "desc"));
+                const querySnapshot = await getDocs(q);
+
+                if (querySnapshot.empty) {
+                    eventsHtml = '<p class="text-center text-gray-600 mt-8">Aucun événement agricole ou magasin récurrent n\'a été publié pour le moment.</p>';
+                } else {
+                    querySnapshot.forEach((doc) => {
+                        const data = doc.data();
+                        
+                        // 2. Détermination du type et de la date à afficher
+                        let dateInfo = '';
+                        let typeBadge = '';
+                        
+                        if (data.type === 'event') {
+                            const startDate = new Date(data.startDate);
+                            const endDate = new Date(data.endDate);
+                            
+                            // Formatage pour l'événement ponctuel
+                            dateInfo = `
+                                <p class="text-sm text-gray-600 mb-1">
+                                    Du **${startDate.toLocaleDateString('fr-FR', { day: 'numeric', month: 'short' })}** à **${startDate.toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' })}**
+                                </p>
+                                <p class="text-sm text-gray-600">
+                                    Au **${endDate.toLocaleDateString('fr-FR', { day: 'numeric', month: 'short' })}** à **${endDate.toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' })}**
+                                </p>
+                            `;
+                            typeBadge = '<span class="px-2 py-0.5 text-xs font-semibold rounded-full bg-green-200 text-green-800">Événement</span>';
+                        } else { // 'recurrent_store' (Magasin)
+                            dateInfo = `<p class="text-sm font-semibold text-gray-600">${data.date}</p>`;
+                            typeBadge = '<span class="px-2 py-0.5 text-xs font-semibold rounded-full bg-yellow-200 text-yellow-800">Magasin Récurrent</span>';
+                        }
+                        
+                        // 3. Construction du HTML de la carte
+                        eventsHtml += `
+                            <div class="liquid-glass p-6 rounded-2xl shadow-xl border border-gray-100 flex flex-col space-y-3">
+                                <div class="flex justify-between items-start">
+                                    <h3 class="text-xl font-bold text-gray-800">${data.farmName}</h3>
+                                    ${typeBadge}
+                                </div>
+                                
+                                <div class="space-y-1">
+                                    ${dateInfo}
+                                    <p class="text-base text-gray-700 font-medium">📍 ${data.address}, ${data.commune}</p>
+                                </div>
+                                
+                                <p class="text-sm text-gray-700 mt-2">${data.detail}</p>
+                                
+                                <div class="mt-3 pt-3 border-t border-gray-200">
+                                    <p class="text-sm text-gray-500">Contact : ${data.contact}</p>
+                                </div>
+                            </div>
+                        `;
+                    });
+                }
+                
+                // 4. Intégration dans le conteneur principal
+                container.innerHTML = `
+                    <h1 class="text-3xl font-extrabold text-center text-gray-900 mb-8">🥕 Nos Agriculteurs & Événements Locaux</h1>
+                    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 max-w-6xl w-full">
+                        ${eventsHtml}
+                    </div>
+                `;
+
+            } catch (error) {
+                console.error("Erreur lors de la récupération des événements agricoles: ", error);
+                container.innerHTML = '<p class="text-center text-red-600 mt-8">Erreur de chargement des données agricoles.</p>';
+            }
+        }
+        
+        // Fonction pour rendre le formulaire d'Agriculture (Événement/Magasin)
+        function renderAgricultureForm() {
+            const isEvent = adminFormState.agricultureType === 'event';
+            
+            return `
+                <h2 class="text-2xl font-bold text-gray-800 mb-4 text-center">Communauté</h2>
+                <form onsubmit="window.handleAdminSubmit(event)" class="flex flex-col gap-5">
+                    <div id="agriculture-type-toggle" class="flex justify-center p-1 liquid-glass rounded-full shadow-lg mb-4">
+                        <button type="button" onclick="window.setAgricultureType('event')" 
+                            class="flex-1 px-3 py-2 font-semibold text-sm transition-all duration-300 rounded-full whitespace-nowrap ${isEvent ? 'apple-button text-white shadow-md' : 'text-gray-700'}"> 
+                            Événement (Ponctuel)
+                        </button>
+                        <button type="button" onclick="window.setAgricultureType('recurrent')" 
+                            class="flex-1 px-3 py-2 font-semibold text-sm transition-all duration-300 rounded-full whitespace-nowrap ${!isEvent ? 'apple-button text-white shadow-md' : 'text-gray-700'}"> 
+                            Magasin (Récurrent)
+                        </button>
+                    </div>
+
+                    <input name="farmName" type="text" placeholder="Nom de la l'évènement *" required 
+                           value="${adminFormState.farmName}" oninput="window.handleAdminChange(event)" 
+                           class="w-full p-3 rounded-xl glass-input text-gray-900 placeholder-gray-600 focus:outline-none" />
+                    
+                    ${isEvent ? `
+                        <div class="grid grid-cols-2 gap-3">
+                            <input name="eventDate" type="datetime-local" placeholder="Date de début et Horaire *" required 
+                                   value="${adminFormState.eventDate}" oninput="window.handleAdminChange(event)" 
+                                   class="w-full p-3 rounded-xl glass-input text-gray-900 placeholder-gray-600 focus:outline-none" />
+                            <input name="eventEndDate" type="datetime-local" placeholder="Date de fin et Horaire *" required 
+                                   value="${adminFormState.eventEndDate}" oninput="window.handleAdminChange(event)" 
+                                   class="w-full p-3 rounded-xl glass-input text-gray-900 placeholder-gray-600 focus:outline-none" />
+                        </div>
+                    ` : `
+                        <input name="openingDate" type="text" placeholder="Date d'ouverture et Horaire *" required 
+                               value="${adminFormState.openingDate}" oninput="window.handleAdminChange(event)" 
+                               class="w-full p-3 rounded-xl glass-input text-gray-900 placeholder-gray-600 focus:outline-none" />
+                    `}
+
+                    <input name="address" type="text" placeholder="Adresse *" required 
+                           value="${adminFormState.address}" oninput="window.handleAdminChange(event)" 
+                           class="w-full p-3 rounded-xl glass-input text-gray-900 placeholder-gray-600 focus:outline-none" />
+                    
+                    <input name="agricultureCommune" type="text" placeholder="Commune *" required 
+                           value="${adminFormState.agricultureCommune}" oninput="window.handleAdminChange(event)" 
+                           class="w-full p-3 rounded-xl glass-input text-gray-900 placeholder-gray-600 focus:outline-none" />
+
+                    <textarea name="detail" placeholder="Détail sur l'événement ou le magasin *" required 
+                              oninput="window.handleAdminChange(event)" 
+                              class="w-full p-3 rounded-xl glass-input text-gray-900 placeholder-gray-600 focus:outline-none h-24">${adminFormState.detail}</textarea>
+                    
+                    <input name="contact" type="text" placeholder="Contact (Téléphone, Email, Site) ${isEvent ? '(facultatif)' : '*'}" 
+                           ${isEvent ? '' : 'required'} 
+                           value="${adminFormState.contact}" oninput="window.handleAdminChange(event)" 
+                           class="w-full p-3 rounded-xl glass-input text-gray-900 placeholder-gray-600 focus:outline-none" />
+                           
+                    <p id="admin-message" class="text-sm font-medium text-center"></p>
+                    <button type="submit" id="admin-submit-button" class="mt-4 w-full text-center text-white font-bold p-3 rounded-xl shadow-lg apple-button"> Publier l'évènement </button>
+                </form>
+            `;
+        }
+
+        // 🎯 NOUVELLE FONCTION: Rendu de la page Admin
+        function renderAdmin() {
+            // Mise à jour de l'état des boutons de navigation
+            document.getElementById('nav-form').classList.remove('bg-white/50');
+            document.getElementById('nav-projects').classList.remove('bg-white/50');
+            document.getElementById('nav-community').classList.remove('bg-white/50');
+            const adminButton = document.getElementById('nav-admin');
+            if (adminButton) adminButton.classList.add('bg-white/50'); 
+            // Nettoyage des styles de centrage vertical
+            mainContent.classList.remove('form-view-container', 'items-center');
+            mainContent.classList.add('items-start', 'py-8');
+
+            // Sécurité: Vérification du rôle côté client
+            if (userRole !== 'admin') {
+                mainContent.innerHTML = ` <div class="relative p-12 text-center liquid-glass rounded-3xl w-full max-w-xl shadow-2xl"> <h2 class="text-2xl font-bold text-gray-900 mb-2"> Accès Refusé </h2> <p class="text-gray-700 mb-6"> Seuls les administrateurs peuvent accéder à cette page. </p> <button onclick="setView('community')" class="apple-button text-white px-8 py-3 rounded-xl text-lg font-semibold shadow-lg"> Retour à la Communauté </button> </div> `; return;
+            }
+
+            const isIntervention = adminFormState.formType === 'intervention';
+            const formTitle = isIntervention ? "Publication de travaux" : "Publication d'évènement";
+            const formSubtitle = isIntervention ? "Ajouter une nouvelle intervention prévue pour les professionnels." : "Ajouter un événement ou un magasin.";
+            
+            mainContent.innerHTML = ` 
+                <div class="w-full max-w-lg mx-auto"> 
+                    <header class="text-center mb-10"> 
+                        <h1 class="text-4xl font-extrabold text-gray-900 drop-shadow-md"> ${formTitle} </h1> 
+                        <p class="text-gray-700 mt-3 text-lg font-medium"> ${formSubtitle} </p> 
+                    </header> 
+                    
+                    <div id="admin-form-type-toggle" class="flex justify-center p-1 liquid-glass rounded-full shadow-lg mb-6 max-w-xs w-full mx-auto">
+                        <button type="button" onclick="window.setAdminFormType('intervention')" 
+                            class="flex-1 px-3 py-2 font-semibold text-sm transition-all duration-300 rounded-full whitespace-nowrap ${isIntervention ? 'apple-button text-white shadow-md' : 'text-gray-700'}"> 
+                            Travaux
+                        </button>
+                        <button type="button" onclick="window.setAdminFormType('agriculture')" 
+                            class="flex-1 px-3 py-2 font-semibold text-sm transition-all duration-300 rounded-full whitespace-nowrap ${!isIntervention ? 'apple-button text-white shadow-md' : 'text-gray-700'}"> 
+                            Communauté
+                        </button>
+                    </div>
+
+                    <div class="liquid-glass p-8 rounded-3xl shadow-xl"> 
+                        ${isIntervention ? renderInterventionForm() : renderAgricultureForm()}
+                    </div> 
+                </div>
+            `; 
+        }
+        window.renderAdmin = renderAdmin;
+
+        function toggleEmailEdit() {
+            const emailInput = document.getElementById('email');
+            const unlockBtn = document.getElementById('unlock-email-btn');
+
+            if (!emailInput || !unlockBtn) return;
+
+            const isLocked = emailInput.disabled;
+
+            if (isLocked) {
+                // Déverrouillage : Rendre le champ éditable et changer l'apparence
+                emailInput.disabled = false;
+                emailInput.classList.remove('bg-gray-50', 'border-gray-200');
+                emailInput.classList.add('bg-white', 'border-gray-300');
+                
+                // Mettre à jour l'icône (Cadenas Ouvert)
+                unlockBtn.innerHTML = `
+                    <svg class="w-5 h-5 text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 11V7a4 4 0 118 0v4m-1.5 0h-5m-7 0h12a2 2 0 002-2V8a2 2 0 00-2-2H4a2 2 0 00-2 2v10a2 2 0 002 2h16a2 2 0 002-2v-1"></path>
+                    </svg>
+                `;
+                emailInput.focus();
+            } else {
+                // Verrouillage : Rendre le champ non éditable et réinitialiser l'e-mail par défaut
+                emailInput.disabled = true;
+                emailInput.value = userEmail || ''; // Remet l'e-mail de l'utilisateur
+                emailInput.classList.remove('bg-white', 'border-gray-300');
+                emailInput.classList.add('bg-gray-50', 'border-gray-200');
+
+                // Mettre à jour l'icône (Cadenas Fermé)
+                unlockBtn.innerHTML = `
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6-4h12V8a2 2 0 00-2-2H8a2 2 0 00-2 2v3h12V8a2 2 0 00-2-2H8a2 2 0 00-2 2v7zM4 11h16a2 2 0 002-2V8a2 2 0 00-2-2H4a2 2 0 00-2 2v1a2 2 0 002 2z"></path>
+                    </svg>
+                `;
+            }
+        }
+        window.toggleEmailEdit = toggleEmailEdit; // Rendre la fonction accessible au HTML
+
+        function getStatusClass(status) {
+            switch (status) {
+                case 'Accepté':
+                    return 'bg-green-100 text-green-700';
+                case 'Refusé':
+                    return 'bg-red-100 text-red-700';
+                case 'En cours':
+                    return 'bg-blue-100 text-blue-700';
+                case 'Terminé':
+                    return 'bg-gray-200 text-gray-700';
+                default:
+                    return 'bg-yellow-100 text-yellow-700'; // 'En attente' par défaut
+            }
+        }
+
+        // --- 4. RENDUS DE VUE ---
+        async function renderProjects() { 
+            // 1. Mise à jour des boutons de navigation et des styles
+            document.getElementById('nav-form').classList.remove('bg-white/50');
+            document.getElementById('nav-projects').classList.add('bg-white/50');
+            document.getElementById('nav-community').classList.remove('bg-white/50');
+
+            mainContent.classList.add('items-start', 'pY-8');
+            mainContent.classList.remove('form-view-container', 'items-center');
+                     
+            // Définir la logique de style ICI (méthode de secours)
+            const getStatusClassLocal = (status) => {
+                switch (status) {
+                    case 'Accepté': return 'bg-green-100 text-green-700';
+                    case 'Refusé': return 'bg-red-100 text-red-700';
+                    case 'En cours': return 'bg-blue-100 text-blue-700';
+                    case 'Terminé': return 'bg-gray-200 text-gray-700';
+                    default: return 'bg-yellow-100 text-yellow-700';
+                }
+            };
+
+            // On utilise directement les variables globales
+            const userProjects = projects;
+            let error = null;
+
+            if (!isAuthReady) {
+                // ... (Logique de chargement) ...
+                mainContent.innerHTML = `
+                    <div class="w-full max-w-4xl">
+                        <h1 class="text-3xl font-bold text-gray-900 mb-6 drop-shadow-sm">
+                            Mes Projets
+                        </h1>
+                        <div id="projects-list" class="p-6 liquid-glass rounded-2xl text-center text-gray-700 font-medium">
+                            Vérification de votre statut de connexion...
+                        </div>
+                    </div>
+                `;
+                return; // Arrêter le rendu
+            } else if (!userId) {
+                error = "Veuillez vous connecter pour voir vos projets.";
+            }
+
+            // 4. Rendu final des projets
+            mainContent.innerHTML = `
+                <div class="w-full max-w-4xl">
+                    <h1 class="text-3xl font-bold text-gray-900 mb-6 drop-shadow-sm">
+                        Mes Projets (${userProjects.length})
+                    </h1>
+                    
+                    ${error ? `
+                        <p class="text-red-700 bg-red-100/70 border border-red-300 rounded-xl p-3 text-sm font-semibold text-center mt-2">
+                            ${error}
+                        </p>
+                        <div class="mt-8 p-10 liquid-glass rounded-2xl text-center shadow-lg">
+                            <svg class="w-16 h-16 text-blue-500 mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9.663 17h4.673M12 3v13m-7 0h14a2 2 0 002-2V5a2 2 0 00-2-2H7a2 2 0 00-2 2v10a2 2 0 002 2z"></path></svg>
+                            <h3 class="text-xl font-bold text-gray-900 mb-2">
+                                Accès Refusé
+                            </h3>
+                            <p class="text-gray-700 mb-6">
+                                Connectez-vous pour voir l'historique de vos demandes.
+                            </p>
+                            <button onclick="window.toggleAuthModal(true)" class="apple-button text-white px-8 py-3 rounded-xl text-lg font-semibold shadow-lg">
+                                Se connecter / S'inscrire
+                            </button>
+                        </div>
+                    ` : ''}
+
+                    ${userProjects.length > 0 && !error ? `
+                        <div class="mb-4 flex justify-end">
+                            <label for="sort-select" class="text-sm font-medium text-gray-700 mr-3 self-center">Trier par:</label>
+                            <select id="sort-select" onchange="window.handleSortChange(event)" class="p-2 rounded-lg border border-gray-300 bg-white shadow-sm text-sm focus:ring-blue-500 focus:border-blue-500">
+                                <option value="dateSoumission_desc">Date (Récent)</option>
+                                <option value="status_asc">Statut</option>
+                                <option value="budget_desc">Budget (Plus élevé)</option>
+                            </select>
+                        </div>
+                    ` : ''}
+
+
+                    <div id="projects-list" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                        ${userProjects.map(project => {
+                            // Helper pour gérer la date de manière robuste
+                            let dateValue = 'Date inconnue';
+                            if (project.createdAt && project.createdAt.seconds) {
+                                dateValue = new Date(project.createdAt.seconds * 1000).toLocaleDateString('fr-FR');
+                            } else if (project.dateSoumission) {
+                                dateValue = new Date(project.dateSoumission).toLocaleDateString('fr-FR');
+                            }
+                            
+                            // 🎯 Utilisation de la classe de statut
+                            const statusClass = typeof getStatusClass !== 'undefined' 
+                                ? getStatusClass(project.status) 
+                                : getStatusClassLocal(project.status);
+                            
+                            // 💡 NOUVEAU : Récupération du budget pour l'affichage
+                            const budgetValue = project.budget ? new Intl.NumberFormat('fr-FR', { style: 'currency', currency: 'EUR', minimumFractionDigits: 0 }).format(project.budget) : 'N/A';
+                            
+                            // 💡 Remplace les anciennes classes de flex (flex justify-between items-start)
+                            return `
+                                <div class="p-6 liquid-glass rounded-2xl flex flex-col justify-between shadow-lg hover:shadow-xl transition-shadow duration-300 h-full">
+                                    <div class="flex-grow flex flex-col">
+                                        <h2 class="text-xl font-bold text-gray-900 mb-1">${project.title || project.type}</h2>
+                                        <p class="text-sm text-gray-600 mb-3 flex-grow">${project.description ? project.description.substring(0, 100) + (project.description.length > 100 ? '...' : '') : 'Aucune description fournie.'}</p>
+                                        <div class="flex items-center space-x-4 text-sm text-gray-700 mt-2">
+                                            <span>Soumis le: <strong>${dateValue}</strong></span>
+                                            <span>Budget: <strong>${budgetValue}</strong></span>
+                                        </div>
+                                    </div>
+                                    <div class="flex items-center justify-between pt-4 border-t border-gray-200/50 mt-4">
+                                        <span class="mr-2 px-4 py-2 text-sm font-medium rounded-full ${statusClass} whitespace-nowrap">
+                                            ${project.status}
+                                        </span>
+                                        
+                                        <div class="flex space-x-2">
+                                            <button 
+                                                onclick="window.toggleEditModal('true', '${project.id}')" 
+                                                class="apple-button text-white px-4 py-2 text-sm font-semibold rounded-xl shadow-md hover:bg-blue-600 transition-colors whitespace-nowrap"
+                                                title="Modifier ce projet et voir tous les détails">
+                                                Modifier
+                                            </button>
+
+                                            <button onclick="window.deleteProject('${project.id}')" class="text-gray-500 hover:text-red-500 transition-colors p-2 rounded-full hover:bg-white/50" title="Supprimer le projet">
+                                                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+                            `;
+                        }).join('')}
+                    </div>
+
+                    ${userProjects.length === 0 && !error ? `
+                        <div class="mt-8 p-10 liquid-glass rounded-2xl text-center shadow-lg">
+                            <svg class="w-16 h-16 text-blue-500 mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9.663 17h4.673M12 3v13m-7 0h14a2 2 0 002-2V5a2 2 0 00-2-2H7a2 2 0 00-2 2v10a2 2 0 002 2z"></path></svg>
+                            <h3 class="text-xl font-bold text-gray-900 mb-2">
+                                Aucun Projet en Cours
+                            </h3>
+                            <p class="text-gray-700 mb-6">
+                                Soumettez votre première demande en vous rendant sur l'onglet **"Nouveau Projet"** !
+                            </p>
+                            <button onclick="window.setView('form')" class="apple-button text-white px-8 py-3 rounded-xl text-lg font-semibold shadow-lg">
+                                Soumettre un Projet
+                            </button>
+                        </div>
+                    ` : ''}
+                </div>
+            `;
+        }
+
+        // --- NOUVEAU: Fonctions de gestion de la modale d'édition ---
+
+        window.toggleEditModal = (open = true, projectId = null) => {
+            showEditModal = open;
+            currentEditingProjectId = projectId;
+            
+            // Si on ouvre, on charge le projet dans le conteneur
+            if (showEditModal && projectId) {
+                renderEditModalContent(projectId);
+            }
+            
+            updateEditModalDisplay();
+        };
+
+        function updateEditModalDisplay() {
+            // 🎯 NOUS AJOUTONS AUSSI LA MISE À JOUR DANS LA FONCTION RENDER GLOBALE
+            const modal = document.getElementById('edit-modal');
+            const container = document.getElementById('edit-form-container');
+            
+            if (!modal || !container) return;
+
+            if (showEditModal) {
+                modal.style.display = 'flex';
+                setTimeout(() => {
+                    modal.style.opacity = '1';
+                    container.style.opacity = '1';
+                    container.style.transform = 'scale(1)';
+                }, 10); 
+            } else {
+                modal.style.opacity = '0';
+                container.style.opacity = '0';
+                container.style.transform = 'scale(0.95)';
+                setTimeout(() => {
+                    modal.style.display = 'none';
+                }, 300); 
+            }
+        }
+
+        function renderEditModalContent(projectId) {
+            const container = document.getElementById('edit-form-container');
+            if (!container) return;
+
+            // Trouver le projet à éditer dans la liste des projets chargés
+            const projectToEdit = projects.find(p => p.id === projectId);
+            if (!projectToEdit) {
+                container.innerHTML = `<h3 class="text-red-500">Projet non trouvé.</h3>`;
+                return;
+            }
+            
+            container.innerHTML = `
+                <header class="text-center mb-6">
+                    <h3 class="text-2xl font-bold text-gray-900">Modification du Projet</h3>
+                </header>
+                
+                <form onsubmit="window.handleEditSubmit(event, '${projectId}')" class="flex flex-col gap-4">
+                    
+                    <label class="block text-sm font-medium text-gray-700">Titre/Type de Projet</label>
+                    <input name="type" type="text" placeholder="Ex: Barbecue de jardin connecté *" required
+                        value="${projectToEdit.type || ''}"
+                        class="w-full p-3 rounded-xl glass-input text-gray-900 focus:outline-none" />
+
+                    <label class="block text-sm font-medium text-gray-700">Description Détaillée</label>
+                    <textarea name="description" placeholder="Ajouter une description..."
+                        class="w-full p-3 rounded-xl glass-input text-gray-900 focus:outline-none h-24">${projectToEdit.description || ''}</textarea>
+
+                    <label class="block text-sm font-medium text-gray-700">Budget (€)</label>
+                    <input name="budget" type="number" placeholder="Budget maximum (€) " required
+                        value="${projectToEdit.budget || 0}"
+                        class="w-full p-3 rounded-xl glass-input text-gray-900 focus:outline-none" />
+
+                    <label class="block text-sm font-medium text-gray-700">Statut (pour le suivi)</label>
+                    <select name="status" class="w-full p-3 rounded-xl glass-input text-gray-900 focus:outline-none appearance-none cursor-pointer">
+                        <option value="En attente" ${projectToEdit.status === 'En attente' ? 'selected' : ''}>En attente</option>
+                        <option value="En cours" ${projectToEdit.status === 'En cours' ? 'selected' : ''}>En cours</option>
+                        <option value="Accepté" ${projectToEdit.status === 'Accepté' ? 'selected' : ''}>Accepté</option>
+                        <option value="Refusé" ${projectToEdit.status === 'Refusé' ? 'selected' : ''}>Refusé</option>
+                        <option value="Terminé" ${projectToEdit.status === 'Terminé' ? 'selected' : ''}>Terminé</option>
+                    </select>
+
+                    <p id="edit-error-message" class="text-red-600 text-sm font-medium text-center"></p>
+                    
+                    <button type="submit" id="save-edit-button" class="mt-4 w-full text-center text-white font-bold p-3 rounded-xl shadow-lg apple-button">
+                        Enregistrer les Modifications
+                    </button>
+                </form>
+            `;
+        }
+        
+        // --- NOUVEAU: Fonction de soumission de l'édition (handleEditSubmit) ---
+
+        window.handleEditSubmit = async (e, projectId) => {
+            e.preventDefault();
+            
+            const submitButton = document.getElementById('save-edit-button');
+            submitButton.textContent = 'Sauvegarde en cours...';
+            submitButton.disabled = true;
+            submitButton.classList.add('opacity-50');
+
+            try {
+                // Le chemin de la référence est la collection "projects" de la racine
+                const docRef = doc(db, "projects", projectId); 
+                
+                // Données à mettre à jour
+                const updatedData = {
+                    type: e.target.type.value,
+                    title: e.target.type.value, 
+                    description: e.target.description.value,
+                    // Convertir le budget en nombre
+                    budget: parseFloat(e.target.budget.value), 
+                    status: e.target.status.value,
+                    dateModification: new Date().toISOString(), 
+                };
+                
+                // 🎯 updateDoc utilise la fonction importée à l'étape 1.1
+                await updateDoc(docRef, updatedData);
+                
+                // Succès
+                document.getElementById('edit-error-message').textContent = "Modification enregistrée !";
+                
+                // Fermer la modale après un court délai
+                setTimeout(() => {
+                    window.toggleEditModal(false);
+                }, 1000);
+
+            } catch (err) {
+                console.error("Erreur de mise à jour du projet:", err);
+                document.getElementById('edit-error-message').textContent = "Erreur: " + err.message;
+
+                // Rétablir le bouton en cas d'erreur
+                submitButton.textContent = 'Enregistrer les Modifications';
+                submitButton.disabled = false;
+                submitButton.classList.remove('opacity-50');
+            }
+        };
+        
+        // 🎯 NOUVELLE FONCTION UTILITAIRE : Tronquer le texte
+        function truncateText(text, limit) {
+            if (!text) return '';
+            return text.length > limit ? text.substring(0, limit) + '...' : text;
+        }
+        window.truncateText = truncateText;
+
+
+        // 🎯 MODIFIÉ : Rendu de la page 'Ma Commune' (En-tête unifié et non-rechargement)
+        function renderCommunity() {
+            // 1. Mise à jour de l'état des boutons de navigation
+            document.getElementById('nav-form').classList.remove('bg-white/50');
+            document.getElementById('nav-projects').classList.remove('bg-white/50');
+            document.getElementById('nav-community').classList.add('bg-white/50');
+            const adminButton = document.getElementById('nav-admin');
+            if (adminButton) adminButton.classList.toggle('hidden', userRole !== 'admin');
+
+            // 2. Nettoyage des styles de centrage vertical et ajout du padding
+            mainContent.classList.remove('form-view-container', 'items-center', 'justify-center', 'flex', 'flex-col');
+            mainContent.classList.add('items-start', 'py-8');
+            
+            // ✅ CLÉ: Vérification si le conteneur principal a déjà été rendu
+            let contentArea = document.getElementById('community-content-area');
+
+            // Récupérer les références pour le rendu partiel
+            let toggleProjets = document.getElementById('toggle-projets');
+            let toggleAgriculture = document.getElementById('toggle-agriculture');
+
+        if (!contentArea) {
+            // --- RENDU INITIAL : L'en-tête et le conteneur sont insérés ---
+            
+            // Récupérer la liste des communes uniques (basée sur les interventions)
+            const uniqueCommunes = Array.from(new Set(communityProfessionals.map(p => p.commune))).filter(c => c && c.trim() !== '');
+            const communeList = uniqueCommunes.map(c => `<span class="px-3 py-1 bg-white/50 text-gray-700 text-xs font-medium rounded-full">${truncateText(c, 25)}</span>` ).join(' ');
+
+            // 3. Insertion du HTML complet (Titre, Toggle, Recherche, Conteneur)
+            mainContent.innerHTML = `
+                <div class="max-w-6xl w-full mx-auto space-y-8">
+                    <div class="flex justify-between items-center mb-6">
+                        <h1 class="text-3xl font-extrabold text-gray-900">Mes Projets et Interventions</h1>
+                        <button onclick="window.openInfoModal('Aide Projets', '<h2>TEST Mes Projets</h2><p>Ceci est le texte d\'information de la page 'Mes Projets'.</p>')" 
+                                class="apple-button-secondary p-2 rounded-full shadow-md hover:shadow-lg transition-shadow duration-300">
+                            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                        </button>
+                    </div>                        
+                        <div class="flex flex-col sm:flex-row gap-4 pt-2">
+                            <div class="relative flex-grow">
+                                <input type="text" oninput="window.handleCommunitySearch(event)" value="${communitySearchQuery}"
+                                    placeholder="Rechercher par nom de commune..."
+                                    name="search-commune"
+                                    class="w-full p-4 pl-12 rounded-xl glass-input text-gray-900 placeholder-gray-600 focus:outline-none focus:ring-2 focus:ring-blue-400 focus:ring-opacity-50" />
+                                <svg class="absolute left-4 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
+                            </div>
+                        </div>
+                        
+                        <div class="flex flex-wrap gap-2 pt-4 border-t border-blue-200/50">
+                            <span class="text-sm font-semibold text-gray-700 self-center">Communes disponibles:</span>
+                            ${communeList}
+                        </div>
+
+                        <div class="pt-4 border-t border-blue-200/50">
+                            <div id="community-toggle" class="liquid-glass p-1 rounded-full shadow-lg flex justify-start mx-auto w-full max-w-sm">
+                                <button type="button" onclick="window.setCommunityView('projets')" id="toggle-projets" 
+                                        class="px-4 py-2 rounded-full font-bold text-sm transition-all duration-300 w-1/2 text-gray-700 rounded-full whitespace-nowrap"> Travaux </button>
+                                <button type="button" onclick="window.setCommunityView('agriculture')" id="toggle-agriculture" 
+                                        class="px-4 py-2 rounded-full font-bold text-sm transition-all duration-300 w-1/2 text-gray-700 rounded-full whitespace-nowrap"> Communauté </button>
+                            </div>
+                        </div>
+                    <div id="community-content-area" class="w-full mx-auto"> </div>
+                </div>
+            `;
+            // Récupérer la référence après insertion
+                contentArea = document.getElementById('community-content-area');
+                toggleProjets = document.getElementById('toggle-projets');
+                toggleAgriculture = document.getElementById('toggle-agriculture');
+
+            } else {
+                // --- RENDU PARTIEL : Mettre à jour uniquement les communes et la recherche ---
+                const uniqueCommunes = Array.from(new Set(communityProfessionals.map(p => p.commune))).filter(c => c && c.trim() !== '');
+                const communeList = uniqueCommunes.map(c => `<span class="px-3 py-1 bg-white/50 text-gray-700 text-xs font-medium rounded-full">${truncateText(c, 25)}</span>` ).join(' ');
+                
+                // Mettre à jour la barre de recherche (valeur) et la liste des communes (HTML)
+                const headerBlock = mainContent.querySelector('.liquid-glass.p-6');
+                if (headerBlock) {
+                    const communeListContainer = headerBlock.querySelector('.flex-wrap.gap-2');
+                    if (communeListContainer) {
+                         communeListContainer.innerHTML = `<span class="text-sm font-medium text-gray-700 self-center">Communes disponibles:</span> ${communeList}`;
+                    }
+                    const searchInput = headerBlock.querySelector('input[name="search-commune"]');
+                    if (searchInput) {
+                         searchInput.value = communitySearchQuery;
+                    }
+                }
+            }
+            
+            // --- 4. Mise à jour du Toggles et du Contenu des Cartes ---
+
+            if (currentCommunitySubView === 'projets') {
+                // Rendre les styles actifs sur le toggle
+                toggleProjets.classList.add('apple-button', 'text-white', 'shadow-md');
+                toggleProjets.classList.remove('text-gray-700');
+                toggleAgriculture.classList.remove('apple-button', 'text-white', 'shadow-md');
+                toggleAgriculture.classList.add('text-gray-700');
+                // Rendu du contenu : CARTES PROJETS/INTERVENTIONS
+                renderProjetsCommunautaires(contentArea); 
+            } else if (currentCommunitySubView === 'agriculture') {
+                // Rendre les styles actifs sur le toggle
+                toggleAgriculture.classList.add('apple-button', 'text-white', 'shadow-md');
+                toggleAgriculture.classList.remove('text-gray-700');
+                toggleProjets.classList.remove('apple-button', 'text-white', 'shadow-md');
+                toggleProjets.classList.add('text-gray-700');
+                // Rendu du contenu : CARTES AGRICULTURE
+                renderEvenementsAgricoles(contentArea); 
+            }
+        }
+        window.renderCommunity = renderCommunity; 
+
+
+        // --- NOUVEAU: RENDU DES PROJETS/INTERVENTIONS COMMUNAUTAIRES (Simplifié) ---
+        // 🎯 MODIFIÉ : Ne rend que la liste de cartes, l'en-tête étant géré par renderCommunity
+        function renderProjetsCommunautaires(contentArea) { 
+            // Logique de filtrage 
+            const query = communitySearchQuery.toLowerCase().trim();
+            const filteredProfessionals = communityProfessionals.filter(pro => query === '' || pro.commune.toLowerCase().includes(query) );
+        
+            if (filteredProfessionals.length === 0) {
+                contentArea.innerHTML = `
+                     <div class="p-10 liquid-glass rounded-2xl text-center shadow-lg w-full">
+                        <h3 class="text-xl font-bold text-gray-900 mb-2"> Aucun professionnel trouvé </h3>
+                        <p class="text-gray-700 mb-6"> Aucune intervention planifiée ne correspond à la commune "${communitySearchQuery}" pour le moment. </p>
+                    </div>
+                `;
+                // Démarrage du Ticker
+                startTicker(); 
+                return;
+            }
+        
+            // Fonction pour générer une carte de professionnel (inchangée)
+            const renderProfessionalCard = (pro) => {
+                const isFirebase = pro.id && !pro.id.startsWith('p');
+                const badge = isFirebase 
+                    ? '<span class="px-3 py-1 bg-blue-100 text-blue-700 font-bold rounded-full text-xs">Intervention Publiée</span>'
+                    : '<span class="px-3 py-1 bg-gray-100 text-gray-600 font-medium rounded-full text-xs">Partenaire Simulé</span>';
+                
+                const truncatedReason = truncateText(pro.reason, 80);
+                
+                return `
+                    <div onclick="window.openDetailModal('${pro.id}')"
+                        class="liquid-glass p-6 rounded-2xl shadow-xl border border-white/50 hover:shadow-2xl hover:border-blue-300 transition-all duration-300 transform hover:-translate-y-0.5 cursor-pointer">
+                        <div class="flex flex-col h-full">
+                            <div class="flex justify-between items-start mb-3">
+                                <h3 class="text-lg font-bold text-gray-900">${pro.name}</h3>
+                                ${badge}
+                            </div>
+                            
+                            <p class="text-sm font-medium text-blue-600 mb-2">${pro.specialty}</p>
+
+                            <div class="space-y-1 text-sm mb-3 border-b border-gray-200/50 pb-2">
+                                <span class="flex items-center gap-2 font-semibold text-gray-700">
+                                    <svg class="w-4 h-4 text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.828 0l-4.243-4.243a8 8 0 1111.314 0z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"></path></svg>
+                                    ${pro.commune}
+                                </span>
+                                <span class="flex items-center gap-2 font-medium text-gray-600">
+                                    <svg class="w-4 h-4 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg>
+                                    ${pro.period.replace('Du ', '')}
+                                </span>
+                            </div>
+
+                            <div class="flex-grow pt-1 min-h-[50px]">
+                                <p class="text-sm text-gray-700 font-medium">
+                                    <span class="font-bold text-gray-800">Mission :</span> ${truncatedReason}
+                                </p>
+                            </div>
+
+                            <div class="pt-2 border-t border-gray-200/50 mt-auto">
+                                <p class="text-xs font-medium text-gray-500">
+                                    Cliquez pour plus de détails et contact
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            };
+        
+            // 🎯 NOUVEAU CONTENU DE LA ZONE DE CONTENU (uniquement les cartes)
+            contentArea.innerHTML = `
+                <div class="space-y-8">
+                    <h2 class="text-2xl font-bold text-gray-800">Interventions Locales Planifiées</h2>
+                    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                        ${filteredProfessionals.map(renderProfessionalCard).join('')}
+                    </div>
+                </div>
+            `;
+            
+            // Démarrage du Ticker
+            startTicker();
+        }
+
+
+        // --- NOUVEAU: RENDU DES ÉVÉNEMENTS AGRICOLES (Simplifié) ---
+        // 🎯 MODIFIÉ : Ne rend que la liste de cartes, l'en-tête étant géré par renderCommunity
+        async function renderEvenementsAgricoles(contentArea) {
+            if (!db || !contentArea) return; 
+            let eventsHtml = '';
+
+            try {
+                const q = query(collection(db, "agriculture_events"), orderBy("createdAt", "desc"));
+                const querySnapshot = await getDocs(q);
+
+                if (querySnapshot.empty) {
+                    eventsHtml = '<p class="text-center text-gray-600 mt-8">Aucun événement agricole ou magasin récurrent n\'a été publié pour le moment.</p>';
+                } else {
+                    eventsHtml = querySnapshot.docs.map((doc) => {
+                        const data = doc.data();
+                        let dateInfo = '';
+                        let typeBadge = '';
+                        
+                        if (data.type === 'event') {
+                            const startDate = new Date(data.startDate);
+                            const endDate = new Date(data.endDate);
+                            dateInfo = `
+                                <p class="text-sm font-semibold text-gray-600">Du ${startDate.toLocaleDateString('fr-FR')} au ${endDate.toLocaleDateString('fr-FR')}</p>
+                                <p class="text-xs text-gray-500">${data.address}</p>
+                            `;
+                            typeBadge = '<span class="bg-indigo-100 text-indigo-700 font-bold px-3 py-1 rounded-full text-xs">Événement</span>';
+                        } else if (data.type === 'recurrent_store') {
+                            dateInfo = `
+                                <p class="text-sm font-semibold text-gray-600">Ouvert : ${data.date}</p>
+                                <p class="text-xs text-gray-500">${data.address}</p>
+                            `;
+                            typeBadge = '<span class="bg-orange-100 text-orange-700 font-bold px-3 py-1 rounded-full text-xs">Magasin Local</span>';
+                        }
+                        
+                        return `
+                            <div class="liquid-glass p-6 rounded-2xl flex flex-col space-y-4 shadow-lg hover:shadow-xl transition-shadow duration-300">
+                                <div class="flex items-start justify-between">
+                                    <h3 class="font-bold text-lg text-gray-800">${data.farmName}</h3>
+                                    ${typeBadge}
+                                </div>
+                                <div class="space-y-1">
+                                    ${dateInfo}
+                                    <p class="text-base text-gray-700 font-medium">📍 ${data.commune}</p>
+                                </div>
+                                <p class="text-sm text-gray-700 mt-2">${data.detail}</p>
+                                <div class="mt-3 pt-3 border-t border-gray-200">
+                                    <p class="text-sm text-gray-500">Contact : ${data.contact}</p>
+                                </div>
+                            </div>
+                        `;
+                    }).join('');
+                }
+
+                // 🎯 NOUVEAU CONTENU DE LA ZONE DE CONTENU (uniquement les cartes avec un sous-titre)
+                contentArea.innerHTML = ` 
+                    <h2 class="text-2xl font-bold text-gray-800">Événements Locaux</h2>
+                    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 w-full mt-6"> 
+                        ${eventsHtml} 
+                    </div> 
+                `;
+                
+            } catch (error) {
+                console.error("Erreur lors de la récupération des événements agricoles: ", error);
+                contentArea.innerHTML = '<p class="text-center text-red-600 mt-8">Erreur de chargement des données agricoles.</p>';
+            }
+        }
+
+        // 🎯 NOUVEAU : Fonction pour l'affichage de la page d'accueil (Non connecté)
+        function renderLandingPage() {
+            // Mise à jour de la barre de navigation
+            document.getElementById('nav-form').classList.remove('bg-white/50');
+            document.getElementById('nav-projects').classList.remove('bg-white/50');
+            document.getElementById('nav-community').classList.remove('bg-white/50');
+
+            // Préparation du conteneur principal
+            mainContent.innerHTML = '';
+            mainContent.classList.remove('items-start', 'py-8', 'form-view-container');
+            mainContent.classList.add('items-center', 'flex', 'flex-col', 'justify-center', 'py-16');
+
+            // Contenu de la page d'accueil
+            mainContent.innerHTML = `
+                <div class="text-center p-8 md:p-12 liquid-glass rounded-2xl max-w-lg mx-auto shadow-2xl">
+                    <svg class="w-20 h-20 mx-auto text-blue-600 mb-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13a4.75 4.75 0 00-4.75 4.75h9.5A4.75 4.75 0 0012 6.253zM12 6.253V3m0 3.253c-1.353 0-2.652.417-3.75 1.189M12 6.253c1.353 0 2.652.417 3.75 1.189M12 18.75v3m0-3c1.353 0 2.652-.417 3.75-1.189M12 18.75c-1.353 0-2.652-.417-3.75-1.189M12 12V9.75M12 12c-1.353 0-2.652.417-3.75 1.189M12 12c1.353 0 2.652.417 3.75 1.189M12 15V12.75"></path>
+                    </svg>
+                    <h1 class="text-3xl font-extrabold text-gray-900 mb-4">Bienvenue sur Society.</h1>
+                    <p class="text-lg text-gray-700 mb-8">
+                        Connectez-vous pour voir les projets de votre commune, suivre leur avancement et rester informé des travaux à venir.
+                    </p>
+                    <button 
+                        onclick="window.toggleAuthModal('true')" 
+                        class="apple-button text-white px-8 py-3 text-lg font-semibold rounded-xl shadow-lg hover:bg-blue-600 transition-colors transform hover:scale-105"
+                    >
+                        Se Connecter
+                    </button>
+                </div>
+            `;
+        }
+
+        // --- NOUVEAU: Fonction de soumission de travail par l'Admin ---
+        window.handleNewWorkSubmit = async (e) => {
+            e.preventDefault();
+            
+            const submitButton = document.getElementById('work-submit-button');
+            const messageElement = document.getElementById('work-admin-message');
+            // ... (le reste du code de la fonction) ...
+        };
+
+        async function render() {
+            const mainContent = document.getElementById('main-content');
+            
+            // 🎯 AJOUTÉ : Appliquer les classes de centrage et de taille par défaut ici.
+            // Ceci corrige le centrage des vues 'form' et 'projects' (non connecté).
+            mainContent.classList.add('form-view-container', 'items-center', 'py-8');
+            mainContent.classList.remove('items-start', 'w-full', 'max-w-7xl', 'mx-auto', 'px-4'); 
+
+            // 1. Mettre à jour l'état de la barre de navigation
+            const userStatusButton = document.getElementById('nav-user-status');
+            
+            // 🎯 NOUVEAU: Gestion du bouton Admin
+            const adminNavButton = document.getElementById('nav-admin');
+            if (adminNavButton) {
+                if (userRole === 'admin') {
+                    adminNavButton.classList.remove('hidden');
+                } else {
+                    adminNavButton.classList.add('hidden');
+                    // Si l'utilisateur standard est sur la vue 'admin', le rediriger
+                    if (currentView === 'admin') {
+                        currentView = 'community';
+                    }
+                }
+            }
+
+            if (userId) {
+                userStatusButton.textContent = `Mon Compte (${userEmail.split('@')[0]})`;
+                userStatusButton.classList.add('bg-blue-100/50', 'p-2');
+                userStatusButton.disabled = false;
+                userStatusButton.classList.remove('opacity-70', 'cursor-not-allowed');
+            } else {
+                userStatusButton.textContent = "Se connecter";
+                userStatusButton.classList.remove('bg-blue-100/50', 'p-2', 'opacity-70', 'cursor-not-allowed');
+                userStatusButton.disabled = false;
+            }
+            
+            
+            // 2. Mettre à jour l'affichage de la pop-up
+            updateAuthModalDisplay();
+            updateEditModalDisplay(); 
+
+            // S'assurer que le bouton de navigation est visible et non disabled
+            document.getElementById('nav-form').disabled = false;
+            document.getElementById('nav-projects').disabled = false;
+            document.getElementById('nav-community').disabled = false; 
+            
+            // 3. Rendu du contenu principal
+            if (currentView === 'form') {
+                renderForm();
+            } else if (currentView === 'projects') {
+                await renderProjects();
+            } else if (currentView === 'community') {
+                // 🎯 MODIFIÉ : Retrait du centrage UNIQUEMENT pour la vue 'community'
+                mainContent.classList.remove('form-view-container', 'items-center', 'py-8');
+                mainContent.classList.add('items-start', 'w-full', 'max-w-7xl', 'mx-auto', 'px-4'); 
+                
+                renderCommunity();
+            } else if (currentView === 'agriculture') {
+                // Cette vue est rarement appelée directement, mais on la laisse par sécurité.
+                await renderEvenementsAgricoles(); 
+            } else if (currentView === 'admin') { 
+                renderAdmin(); 
+            } else {
+                renderForm(); // Vue par défaut
+            }
+        }
+
+        // --- 5. INITIALISATION ---
+        window.onload = () => {
+            setupFirebaseAndListeners();
+            render(); 
+            
+            // Logique de fermeture au clic extérieur pour la modale de DÉTAIL COMMUNAUTÉ
+            const proDetailModal = document.getElementById('pro-detail-modal');
+            if (proDetailModal) {
+                proDetailModal.addEventListener('click', (e) => {
+                    if (e.target.id === 'pro-detail-modal') {
+                        closeDetailModal();
+                    }
+                });
+            }
+
+            // 🎯 NOUVEAU: Logique de fermeture au clic extérieur pour la modale d'ÉDITION DE PROJET
+            const editModal = document.getElementById('edit-modal');
+            if (editModal) {
+                editModal.addEventListener('click', (e) => {
+                    // Vérifie si l'élément cliqué est le conteneur de fond de la modale (l'overlay)
+                    if (e.target.id === 'edit-modal') {
+                        closeEditModal();
+                    }
+                });
+            }
+        };
+
+    </script>
+
+<div id="info-modal" class="hidden fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-[1000]" onclick="closeInfoModal(event)">
+    <div class="bg-white rounded-3xl p-6 shadow-2xl max-w-lg w-full transform transition-all duration-300 scale-95" id="info-modal-content">
+        <div class="flex justify-between items-start border-b pb-3 mb-4">
+            <h2 class="text-2xl font-bold text-gray-800" id="info-modal-title">Information</h2>
+            <button onclick="window.closeInfoModal()" class="text-gray-400 hover:text-gray-600 transition-colors">
+                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+            </button>
+        </div>
+        <div class="text-gray-700 space-y-4" id="info-modal-body">
+            </div>
+    </div>
+</div>
+
+</body>
+</html>
